@@ -3,7 +3,7 @@ set -eu
 
 GH_TOKEN=${GH_TOKEN:-${1}}
 CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-target}"
-COMMIT_MESSAGE="${TRAVIS_TAG:-${TRAVIS_COMMIT}}"
+COMMIT_MESSAGE="${CI_GIT_TAG:-}${CI_GIT_TAG:+ - }${CI_GIT_COMMIT}"
 
 DOCDIR=`mktemp -d`
 cp -a "$CARGO_TARGET_DIR/doc/"* "$DOCDIR/" && cd "$DOCDIR"
@@ -13,7 +13,7 @@ git init
 git config user.name "ghost"
 git config user.email "ghost@ghost@konpa.ku"
 
-git remote add origin "https://$GH_TOKEN@github.com/$GH_SLUG"
+git remote add origin "https://$GH_TOKEN@github.com/$CI_GH_SLUG"
 git fetch origin gh-pages && git reset origin/gh-pages || true
 
 git add -A .

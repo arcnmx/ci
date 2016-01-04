@@ -3,9 +3,9 @@
 export CI_ROOT=`dirname "${BASH_SOURCE[0]}"`
 
 if [ "$TRAVIS" = true ]; then
-	export CI_TAG=${TRAVIS_TAG}
-	export CI_COMMIT=${TRAVIS_COMMIT}
-	export GH_SLUG=${TRAVIS_REPO_SLUG}
+	export CI_GIT_TAG=${TRAVIS_TAG}
+	export CI_GIT_COMMIT=${TRAVIS_COMMIT}
+	export CI_GH_SLUG=${TRAVIS_REPO_SLUG}
 
 	export CI_BUILD_DIR=${TRAVIS_BUILD_DIR}
 
