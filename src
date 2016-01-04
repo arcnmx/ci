@@ -17,9 +17,6 @@ fi
 
 export PATH="$CI_ROOT:$CI_ROOT/$CI_LANG:$PATH"
 
-case "$CI_LANG" in
-	rust)
-		export CI_RUST_ENV_HASH=$(echo "${CI_RUST_VERSION}${CARGO_FEATURES:-}" | md5sum | cut -d ' ' -f1)
-		export CARGO_TARGET_DIR="$CI_BUILD_DIR/target/$CI_RUST_ENV_HASH"
-		;;
-esac
+if [ -s "$CI_ROOT/$CI_LANG" ]; then
+	source "$CI_ROOT/$CI_LANG/src"
+fi
