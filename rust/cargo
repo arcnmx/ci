@@ -18,6 +18,8 @@ case "$SUBCOMMAND" in
 		if [ -n "$CRATES_IO_TOKEN" ]; then
 			CARGO_FLAGS+=("--token=$CRATES_IO_TOKEN")
 		fi
+		unset CARGO_DEFAULT_FEATURES
+		CARGO_FEATURES=()
 		;;
 	*)
 		unset CARGO_DEFAULT_FEATURES
