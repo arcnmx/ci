@@ -21,4 +21,7 @@ if [ -s "$CI_ROOT/$CI_LANG" ]; then
 	source "$CI_ROOT/$CI_LANG/src"
 fi
 
-alias sudo="sudo -E"
+sudo() {
+	`which sudo` -E "$@"
+}
+export -f sudo
