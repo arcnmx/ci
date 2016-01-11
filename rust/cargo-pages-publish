@@ -11,7 +11,7 @@ cp -a "$CARGO_TARGET_DIR/doc/"* "$DOCDIR/" && cd "$DOCDIR"
 git init
 
 git config user.name "ghost"
-git config user.email "ghost@ghost@konpa.ku"
+git config user.email "ghost@konpa.ku"
 
 git remote add origin "https://$GH_TOKEN@github.com/$CI_GH_SLUG"
 git fetch origin gh-pages && git reset origin/gh-pages || true
