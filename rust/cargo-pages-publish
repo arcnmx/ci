@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-GH_TOKEN=${GH_TOKEN:-${1}}
+GH_TOKEN=${GH_TOKEN:-${2}}
 CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-target}"
 COMMIT_MESSAGE="${CI_GIT_TAG:-}${CI_GIT_TAG:+ - }${CI_GIT_COMMIT}"
 
