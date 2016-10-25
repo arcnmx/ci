@@ -1,0 +1,78 @@
+#!/bin/bash
+set -eu
+shopt -s nullglob
+
+usage() {
+	echo "$0 PATH CRATE ORIGIN_URI"
+}
+
+main() {
+	if [ $# -lt 3 ]; then
+		echo "Not enough arguments" >&2
+		usage >&2
+		return 1
+	fi
+
+	ROOT="$1"
+	CRATE_NAME="$2"
+	ORIGIN="$3"
+
+	if [[ $ORIGIN =~ .*github\.com[:/](.+)$ ]]; then
+		REPO_SLUG="${BASH_REMATCH[1]}"
+		if [[ $REPO_SLUG =~ ^(.+)\.git$ ]]; then
+			REPO_SLUG="${BASH_REMATCH[1]}"
+		fi
+
+		if [[ $REPO_SLUG =~ ^([^/]+)/(.+) ]]; then
+			REPO_USER="${BASH_REMATCH[1]}"
+			REPO_NAME="${BASH_REMATCH[2]}"
+		else
+			echo "Unable to determine repo user" >&2
+			return 1
+		fi
+	else
+		echo "ORIGIN is not a github repo" >&2
+		return 1
+	fi
+
+	if [ -e "$ROOT" ]; then
+		echo "$ROOT already exists, please specify a new project directory" >&2
+		return 1
+	fi
+
+	mkdir "$ROOT"
+
+	SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	TEMPLATE_DIR="$SCRIPT_DIR/travis-init.d"
+
+	cd "$ROOT"
+	git init
+	git remote add origin "$ORIGIN"
+	git config-email > /dev/null 2>&1 || true
+
+	cargo init --vcs none --name "$CRATE_NAME"
+
+	TEMPLATE_ARGS=(
+		REPO_SLUG="$REPO_SLUG"
+		REPO_NAME="$REPO_NAME"
+		REPO_USER="$REPO_USER"
+		CRATE_NAME="$CRATE_NAME"
+	)
+	SED_ARGS=(sed)
+
+	for arg in "${TEMPLATE_ARGS[@]}"; do
+		NAME="$(echo "$arg" | cut -d= -f1)"
+		VALUE="$(echo "$arg" | cut -d= -f2-)"
+		SED_ARGS+=(-e "s!%%$NAME%%!$VALUE!g")
+	done
+
+	for f in $(cd "$TEMPLATE_DIR"; find . -type f); do
+		mkdir -p "./$(dirname "$f")"
+		"${SED_ARGS[@]}" < "$TEMPLATE_DIR/$f" > "./$f"
+	done
+
+	travis enable --no-interactive
+	"$SCRIPT_DIR/travis-encrypt" || true
+}
+
+main "$@"

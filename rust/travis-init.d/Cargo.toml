@@ -1,0 +1,14 @@
+[package]
+name = "%%CRATE_NAME%%"
+version = "0.0.1"
+authors = ["%%REPO_USER%%"]
+
+description = "%%CRATE_NAME%%"
+keywords = []
+
+documentation = "http://%%REPO_USER%%.github.io/%%REPO_NAME%%/%%CRATE_NAME%%"
+repository = "https://github.com/%%REPO_SLUG%%"
+readme = "README.md"
+license = "MIT"
+
+[dependencies]
