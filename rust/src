@@ -16,6 +16,7 @@ if [ -n "${CARGO_TARGET:-}" ]; then
 fi
 
 mkdir -p "$HOME/.cargo"
+rm -f "$HOME/.cargo/config"
 
 if which i686-w64-mingw32-gcc > /dev/null 2>&1; then
 	echo "
