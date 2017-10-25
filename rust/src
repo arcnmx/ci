@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export CI_RUST_ENV_HASH=$(echo "${CI_RUST_VERSION}${CARGO_FEATURES:-}${CARGO_DEFAULT_FEATURES:-}${CARGO_TARGET:-}$(rustc --version)$(cargo --version)" | md5sum | cut -d ' ' -f1)
+export CI_SUFFIX_BIN=
 if [ -z "$CARGO_TARGET_DIR" ]; then
 	export CARGO_TARGET_DIR="$CI_BUILD_DIR/target/$CI_RUST_ENV_HASH"
 	mkdir -p "$CARGO_TARGET_DIR"
@@ -9,6 +10,9 @@ fi
 
 if [ -n "${CARGO_TARGET:-}" ]; then
 	rustup target add "$CARGO_TARGET"
+	if [[ "$CARGO_TARGET" = *windows* ]]; then
+		export CI_SUFFIX_BIN=.exe
+	fi
 fi
 
 mkdir -p "$HOME/.cargo"
