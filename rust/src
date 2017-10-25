@@ -6,3 +6,7 @@ if [ -z "$CARGO_TARGET_DIR" ]; then
 	mkdir -p "$CARGO_TARGET_DIR"
 	find "$CI_BUILD_DIR/target" -mindepth 1 -maxdepth 1 -type d -ctime +10 -exec rm -rf {} \;
 fi
+
+if [ -n "${CARGO_TARGET:-}" ]; then
+	rustup target add "$CARGO_TARGET"
+fi

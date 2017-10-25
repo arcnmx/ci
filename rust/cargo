@@ -11,6 +11,19 @@ if [ -n "${CARGO_QUIET:-}" ]; then
 	CARGO_FLAGS+=("-v")
 fi
 
+if [ -n "${CARGO_TARGET:-}" ]; then
+	case "$SUBCOMMAND" in
+		build)
+			CARGO_FLAGS+=("--target" "$CARGO_TARGET")
+			;;
+		doc|publish) # let these through
+			;;
+		*) # run/test can't really be done
+			exit 0
+			;;
+	esac
+fi
+
 case "$SUBCOMMAND" in
 	build|doc|run|test|bench)
 		;;
