@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CI_RUST_ENV_HASH=$(echo "${CI_RUST_VERSION}${CARGO_FEATURES:-}${CARGO_DEFAULT_FEATURES:-}$(rustc --version)$(cargo --version)" | md5sum | cut -d ' ' -f1)
+export CI_RUST_ENV_HASH=$(echo "${CI_RUST_VERSION}${CARGO_FEATURES:-}${CARGO_DEFAULT_FEATURES:-}${CARGO_TARGET:-}$(rustc --version)$(cargo --version)" | md5sum | cut -d ' ' -f1)
 if [ -z "$CARGO_TARGET_DIR" ]; then
 	export CARGO_TARGET_DIR="$CI_BUILD_DIR/target/$CI_RUST_ENV_HASH"
 	mkdir -p "$CARGO_TARGET_DIR"
