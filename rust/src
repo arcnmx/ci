@@ -10,3 +10,19 @@ fi
 if [ -n "${CARGO_TARGET:-}" ]; then
 	rustup target add "$CARGO_TARGET"
 fi
+
+mkdir -p "$HOME/.cargo"
+
+if which i686-w64-mingw32-gcc > /dev/null 2>&1; then
+	echo "
+[target.i686-pc-windows-gnu]
+linker = \"$(which i686-w64-mingw32-gcc)\"
+ar = \"$(which i686-w64-mingw32-ar)\"" >> "$HOME/.cargo/config"
+fi
+
+if which x86_64-w64-mingw32-gcc > /dev/null 2>&1; then
+	echo "
+[target.x86_64-pc-windows-gnu]
+linker = \"$(which x86_64-w64-mingw32-gcc)\"
+ar = \"$( which x86_64-w64-mingw32-ar)\"" >> "$HOME/.cargo/config"
+fi
