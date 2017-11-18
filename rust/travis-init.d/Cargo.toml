@@ -11,4 +11,8 @@ repository = "https://github.com/%%REPO_SLUG%%"
 readme = "README.md"
 license = "MIT"
 
+[badges]
+travis-ci = { repository = "%%REPO_SLUG%%" }
+maintenance = { status = "passively-maintained" } # actively-developed, passively-maintained, as-is, none, experimental, looking-for-maintainer, deprecated
+
 [dependencies]
