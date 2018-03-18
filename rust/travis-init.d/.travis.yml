@@ -21,7 +21,7 @@ env:
   - CARGO_QUIET=
   - CARGO_INCREMENTAL=0
 before_install:
-- curl -L https://github.com/arcnmx/ci/archive/0.1.tar.gz | tar -xzC $HOME && . $HOME/ci-0.1/src
+- curl -L https://github.com/arcnmx/ci/archive/0.2.tar.gz | tar -xzC $HOME && . $HOME/ci-0.2/src
 
 script:
 - cargo test
