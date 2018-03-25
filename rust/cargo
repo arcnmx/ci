@@ -19,7 +19,7 @@ if [ -n "${CARGO_TARGET:-}" ]; then
 		doc|publish) # let these through
 			;;
 		test)
-			CARGO_FLAGS+=("--no-run")
+			CARGO_FLAGS+=("--no-run" "--target" "$CARGO_TARGET")
 			;;
 		*) # run/etc can't really be done
 			exit 0
