@@ -13,10 +13,10 @@ fi
 
 if [ -n "${CARGO_TARGET:-}" ]; then
 	case "$SUBCOMMAND" in
-		build)
+		build|doc)
 			CARGO_FLAGS+=("--target" "$CARGO_TARGET")
 			;;
-		doc|publish) # let these through
+		publish) # let these through
 			;;
 		test)
 			if [ "$CARGO_TARGET" = i686-pc-windows-gnu ]; then
