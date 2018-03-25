@@ -18,7 +18,10 @@ if [ -n "${CARGO_TARGET:-}" ]; then
 			;;
 		doc|publish) # let these through
 			;;
-		*) # run/test can't really be done
+		test)
+			CARGO_FLAGS+=("--no-run")
+			;;
+		*) # run/etc can't really be done
 			exit 0
 			;;
 	esac
