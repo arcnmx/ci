@@ -6,7 +6,7 @@ CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-target}"
 COMMIT_MESSAGE="${CI_GIT_TAG:-}${CI_GIT_TAG:+ - }${CI_GIT_COMMIT}"
 
 DOCDIR=`mktemp -d`
-cp -a "$CARGO_TARGET_DIR/doc/"* "$DOCDIR/" && cd "$DOCDIR"
+cp -a "$CARGO_TARGET_DIR/${CARGO_TARGET:-.}/doc/"* "$DOCDIR/" && cd "$DOCDIR"
 
 git init
 
