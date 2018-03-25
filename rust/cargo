@@ -13,7 +13,7 @@ fi
 
 if [ -n "${CARGO_TARGET:-}" ]; then
 	case "$SUBCOMMAND" in
-		build|doc|publish)
+		build|doc|package|publish)
 			CARGO_FLAGS+=("--target" "$CARGO_TARGET")
 			;;
 		test)
@@ -23,8 +23,10 @@ if [ -n "${CARGO_TARGET:-}" ]; then
 			fi
 			CARGO_FLAGS+=("--no-run" "--target" "$CARGO_TARGET")
 			;;
-		*) # run/etc can't really be done
+		run|bench) # run/etc can't really be done
 			exit 0
+			;;
+		*)
 			;;
 	esac
 fi
