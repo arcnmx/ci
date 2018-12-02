@@ -40,5 +40,4 @@ before_deploy:
 - cargo package
 
 after_deploy:
-- cargo pages-publish
 - cargo publish
