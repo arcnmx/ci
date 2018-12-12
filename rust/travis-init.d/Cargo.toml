@@ -7,7 +7,7 @@ edition = "2018"
 description = "%%CRATE_NAME%%"
 keywords = []
 
-documentation = "http://%%REPO_USER%%.github.io/%%REPO_NAME%%/%%CRATE_NAME%%"
+documentation = "https://docs.rs/%%CRATE_NAME%%/"
 repository = "https://github.com/%%REPO_SLUG%%"
 readme = "README.md"
 license = "MIT"
