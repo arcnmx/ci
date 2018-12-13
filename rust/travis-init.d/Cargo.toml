@@ -6,6 +6,7 @@ edition = "2018"
 
 description = "%%CRATE_NAME%%"
 keywords = []
+categories = [] # https://crates.io/category_slugs
 
 documentation = "https://docs.rs/%%CRATE_NAME%%/"
 repository = "https://github.com/%%REPO_SLUG%%"
