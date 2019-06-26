@@ -1,0 +1,36 @@
+parameters:
+  name: packages
+  attr: packages
+  file: default.nix
+  workDir: .
+  timeoutInMinutes: ""
+  CACHIX_SIGNING_KEY: ""
+  CACHIX_CACHE: ""
+  __attrFlag:
+    "True": ""
+    "False": "-A"
+steps:
+- bash: |
+    ci-query -f ${{parameters.file}} ${{parameters.__attrFlag[eq(parameters.attr, '')]}} ${{parameters.attr}} |
+      tee ${{parameters.workDir}}/${{parameters.name}}.json
+  displayName: nix eval ${{parameters.name}}
+  timeoutInMinutes: 5
+- bash: |
+    ci-dirty < ${{parameters.workDir}}/${{parameters.name}}.json |
+      tee ${{parameters.workDir}}/${{parameters.name}}.txt
+  displayName: nix dirty ${{parameters.name}}
+  timeoutInMinutes: 2
+- bash: nix-instantiate --show-trace ${{parameters.file}} ${{parameters.__attrFlag[eq(parameters.attr, '')]}} ${{parameters.attr}}
+  displayName: nix instantiate
+  timeoutInMinutes: 1
+- bash: nix-store --realise $(< ${{parameters.workDir}}/${{parameters.name}}.txt) --show-trace -k
+  displayName: nix build packages
+  ${{ if ne(parameters.timeoutInMinutes, '') }}:
+    timeoutInMinutes: ${{parameters.timeoutInMinutes}}
+- ${{ if and(ne(parameters.CACHIX_CACHE, ''), ne(parameters.CACHIX_SIGNING_KEY, '')) }}:
+  - template: cache.yml
+    parameters:
+      name: ${{parameters.name}}
+      workDir: ${{parameters.workDir}}
+      CACHIX_CACHE: ${{parameters.CACHIX_CACHE}}
+      CACHIX_SIGNING_KEY: ${{parameters.CACHIX_SIGNING_KEY}}

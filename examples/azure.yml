@@ -1,0 +1,21 @@
+resources:
+  repositories:
+  - repository: ci
+    type: github
+    name: arcnmx/ci
+    ref: refs/heads/master
+    endpoint: github/arcnmx/ci # https://github.com/microsoft/azure-pipelines-agent/issues/1902#issuecomment-432272899
+variables:
+  NIX_CHANNELS_MOZILLA: master
+  CI_ALLOW_ROOT: true
+  CI_CLOSE_STDIN: true # why does azure do this...
+  TERM: linux
+pool:
+  vmImage: ubuntu-latest
+steps:
+- template: azure/nix/install.yml@ci
+  parameters:
+    config: examples/ci.nix
+    ciVersion: master
+- bash: crex --help | lolcat
+  displayName: crex --help

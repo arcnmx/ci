@@ -1,0 +1,32 @@
+parameters:
+  nixVersion: nix-2.2.1 # until https://github.com/NixOS/nix/issues/2805 is resolved
+  ciVersion: master
+  ciPath: ""
+  #nixVersion: latest
+  nixChannelUrls:
+    home-manager:
+      mangled: home_manager
+  nixChannels: {}
+  config: MUST_PROVIDE_CONFIG_FILE
+  timeoutInMinutes: 5
+steps:
+- bash: |
+    echo -e '\nexec 0<&-' >> ~/.bash_profile # default on macos is missing trailing newline
+    if [[ -z ${CI_ENV-} ]]; then
+      export CI_ENV=${CI_ENV-$(Agent.BuildDirectory)/.ci}
+      echo "##vso[task.setvariable variable=CI_ENV]$CI_ENV"
+    fi
+    export BASH_ENV="$CI_ENV/ci/source"
+    echo "##vso[task.setvariable variable=BASH_ENV]$BASH_ENV"
+    set -eu
+    sh <(curl $NIX_URL/install) --no-daemon &&
+    bash -lc "nix-build --show-trace -o $CI_ENV $CI_URL -A env --argstr config $CI_CONFIG" &&
+    bash -c ci-setup
+  displayName: nix install
+  timeoutInMinutes: ${{parameters.timeoutInMinutes}}
+  env:
+    CI_CONFIG: ${{parameters.config}}
+    NIX_URL: https://nixos.org/releases/nix/${{parameters.nixVersion}}
+    CI_URL: ${{coalesce(parameters.ciPath, format('https://github.com/arcnmx/ci/archive/{0}.tar.gz', coalesce(parameters.nixChannels.ci, parameters.ciVersion)))}}
+    ${{ each channel in parameters.nixChannels }}:
+      NIX_CHANNELS_${{coalesce(parameters.nixChannelUrls[channel.key].mangled, channel.key)}}: ${{channel.value}}

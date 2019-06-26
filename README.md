@@ -1,3 +1,5 @@
+[![ci-badge][]][ci]
+
 Utilities and helper scripts for continuous integration.
 
 # CI backends
@@ -36,3 +38,6 @@ Provides functionality similar to
 - `cargo pages-publish` will automatically upload your generated docs to Github
   Pages. Requires a run of `cargo doc` beforehand. Must be passed an OAuth
   token as the first argument or via the `$GH_TOKEN` environment variable.
+
+[ci-badge]: https://dev.azure.com/arcnmx/CI/_apis/build/status/ci?branchName=master
+[ci]: https://dev.azure.com/arcnmx/CI/_build/latest?definitionId=4
