@@ -110,7 +110,7 @@
       asroot() {
         if ! [[ -w @nixSysconfDir@ ]] && [[ -n "@allowRoot@" ]]; then
           # optionally bring in sudo from cipkgs? setuid is complicated though
-          env PATH=$HOST_PATH sudo "$@"
+          sudo @coreutils@/bin/env PATH="$PATH" NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE "$@"
         else
           "$@"
         fi
