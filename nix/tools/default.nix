@@ -6,12 +6,14 @@
       name = "ci-query";
       dir = "bin";
       src = ./query.sh;
+      isExecutable = true;
       inherit runtimeShell yq nix;
     };
     ci-dirty = { substituteAll, runtimeShell, jq }: substituteAll {
       name = "ci-dirty";
       dir = "bin";
       src = ./dirty.sh;
+      isExecutable = true;
       inherit runtimeShell jq;
     };
   };
