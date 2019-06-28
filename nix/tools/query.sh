@@ -1,7 +1,7 @@
 #!@runtimeShell@
 set -euo pipefail
 
-ENV_FILTER='.items.item[] | {
+ENV_FILTER='[.items.item] | flatten | .[] | {
 	name: .["@name"],
 	drvPath: .["@drvPath"],
 	attrPath: .["@attrPath"],

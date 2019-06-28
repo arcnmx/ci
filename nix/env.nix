@@ -107,7 +107,7 @@
       ci_env_impure
 
       asroot() {
-        if ! [[ -w @nixSysconfDir@ ]] && [[ -n "@allowRoot@" ]]; then
+        if [[ ! -w @nixSysconfDir@ && -n "@allowRoot@" ]]; then
           # optionally bring in sudo from cipkgs? setuid is complicated though
           sudo @coreutils@/bin/env PATH="$PATH" NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE "$@"
         else
