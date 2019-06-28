@@ -57,6 +57,8 @@
 
       if [[ -n ''${CI_PATH-} ]]; then return; fi
 
+      set -euo pipefail # why would you ever not want this by default..?
+
       export NIX_PATH=@nixPathStr@
       export NIX_PREFIX=@nix@
       export HOST_PATH=$PATH
