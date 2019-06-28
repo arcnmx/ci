@@ -11,7 +11,7 @@ parameters:
   timeoutInMinutes: 5
 steps:
 - bash: |
-    echo -e '\nexec 0<&-' >> ~/.bash_profile # default on macos is missing trailing newline
+    echo >> ~/.bash_profile # default on macos is missing trailing newline
     if [[ -z ${CI_ENV-} ]]; then
       export CI_ENV=${CI_ENV-$(Agent.BuildDirectory)/.ci}
       echo "##vso[task.setvariable variable=CI_ENV]$CI_ENV"

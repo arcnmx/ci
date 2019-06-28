@@ -58,6 +58,7 @@
       if [[ -n ''${CI_PATH-} ]]; then return; fi
 
       set -euo pipefail # why would you ever not want this by default..?
+      ${lib.optionalString (config.closeStdin or false) "exec 0<&-"}
 
       export NIX_PATH=@nixPathStr@
       export NIX_PREFIX=@nix@
@@ -75,10 +76,6 @@
       source @out@/@prefix@/env
 
       ci_env_nix
-
-      if [[ -n ''${CI_CLOSE_STDIN-} ]]; then
-        exec 0<&-
-      fi
     '';
   };
 
