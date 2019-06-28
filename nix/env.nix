@@ -23,15 +23,15 @@
     inherit nix cachix coreutils gzip tar xz bzip2;
     ci-dirty = (ci-dirty.override { inherit runtimeShell; });
     ci-query = (ci-query.override { inherit nix runtimeShell; });
-  } // config.basePackages;
-  packages = packagesBase // config.packages; # TODO: turn this into an overlay?
+  } // (config.basePackages or { });
+  packages = packagesBase // (config.packages or { }); # TODO: turn this into an overlay?
   bin = symlinkJoin {
     name = "ci-env-bin";
     paths = builtins.attrValues packagesBase;
   };
   glibcLocales = lib.listToAttrs (map (glibc:
     lib.nameValuePair (builtins.replaceStrings [ "." ] [ "_" ] glibc.version) "${glibc}/lib/locale/locale-archive"
-  ) config.glibcLocales);
+  ) (config.glibcLocales or [ ]));
   envCommon = {
     inherit nix prefix cacert;
 
@@ -98,7 +98,7 @@
 
     cachixUse = builtins.attrNames (config.cache.cachix or {});
     inherit (nixConfig) nixSysconfDir;
-    inherit (config) allowRoot;
+    allowRoot = config.allowRoot or "";
     inherit runtimeShell nixConfigFile cachix coreutils bin;
     setup = ''
       #!@runtimeShell@
