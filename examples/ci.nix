@@ -32,6 +32,6 @@ in { # example config file
 
   # allow setup to modify host environment
   # (allows /etc/nix/nix.conf modifications)
-  allowRoot = builtins.getEnv "CI_ALLOW_ROOT";
-  closeStdin = builtins.getEnv "CI_CLOSE_STDIN";
+  allowRoot = (builtins.getEnv "CI_ALLOW_ROOT") != "";
+  closeStdin = (builtins.getEnv "CI_CLOSE_STDIN") != "";
 }
