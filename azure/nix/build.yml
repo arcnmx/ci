@@ -1,6 +1,6 @@
 parameters:
   name: packages
-  attr: packages
+  attr: ""
   file: default.nix
   workDir: .
   timeoutInMinutes: ""

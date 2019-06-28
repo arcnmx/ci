@@ -43,6 +43,7 @@
     else ch: ch
   ) (out.channels or {});
   nixPath = {
+    nixpkgs = cipkgsPath;
     cipkgs = cipkgsPath;
     ci = toString ./..;
   } // nixPath' // (out.nixPath or {});
