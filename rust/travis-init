@@ -50,7 +50,7 @@ main() {
 	git remote add origin "$ORIGIN"
 	git config-email > /dev/null 2>&1 || true
 
-	cargo init --vcs none --name "$CRATE_NAME"
+	cargo init --lib --vcs none --name "$CRATE_NAME"
 
 	TEMPLATE_ARGS=(
 		REPO_SLUG="$REPO_SLUG"
