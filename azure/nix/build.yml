@@ -4,6 +4,8 @@ parameters:
   file: default.nix
   workDir: .
   timeoutInMinutes: ""
+  condition: succeeded()
+  continueOnError: false
   CACHIX_SIGNING_KEY: ""
   CACHIX_CACHE: ""
   __attrFlag:
@@ -15,16 +17,21 @@ steps:
       tee ${{parameters.workDir}}/${{parameters.name}}.json
   displayName: nix eval ${{parameters.name}}
   timeoutInMinutes: 5
+  condition: ${{parameters.condition}}
 - bash: |
     ci-dirty < ${{parameters.workDir}}/${{parameters.name}}.json |
       tee ${{parameters.workDir}}/${{parameters.name}}.txt
   displayName: nix dirty ${{parameters.name}}
   timeoutInMinutes: 2
+  condition: ${{parameters.condition}}
 - bash: nix-instantiate --show-trace ${{parameters.file}} ${{parameters.__attrFlag[eq(parameters.attr, '')]}} ${{parameters.attr}}
-  displayName: nix instantiate
-  timeoutInMinutes: 1
+  displayName: nix instantiate ${{parameters.name}}
+  timeoutInMinutes: 2
+  condition: ${{parameters.condition}}
 - bash: nix-store --realise $(< ${{parameters.workDir}}/${{parameters.name}}.txt) --show-trace -k
-  displayName: nix build packages
+  displayName: nix build ${{parameters.name}}
+  continueOnError: ${{parameters.continueOnError}}
+  condition: ${{parameters.condition}}
   ${{ if ne(parameters.timeoutInMinutes, '') }}:
     timeoutInMinutes: ${{parameters.timeoutInMinutes}}
 - ${{ if and(ne(parameters.CACHIX_CACHE, ''), ne(parameters.CACHIX_SIGNING_KEY, '')) }}:

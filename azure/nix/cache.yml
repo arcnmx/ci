@@ -1,6 +1,7 @@
 parameters:
   name: packages
   workDir: .
+  continueOnError: true
   CACHIX_SIGNING_KEY: $(cachix.signing.key)
   CACHIX_CACHE: $(CACHIX_CACHE)
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(eq(variables['Build.Reason'], 'PullRequest')))
@@ -11,7 +12,7 @@ steps:
       nix-store --query --outputs $(< ${{parameters.workDir}}/${{parameters.name}}.txt) |
         cachix push ${{parameters.CACHIX_CACHE}}
   displayName: cachix push ${{parameters.CACHIX_CACHE}} < ${{parameters.name}}
-  continueOnError: true
+  continueOnError: ${{parameters.continueOnError}}
   condition: ${{parameters.condition}}
   env:
     CACHIX_SIGNING_KEY: ${{coalesce(parameters.CACHIX_SIGNING_KEY, '$(CACHIX_SIGNING_KEY)')}}
