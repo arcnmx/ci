@@ -1,3 +1,7 @@
+trigger:
+  branches:
+    include:
+    - master
 resources:
   repositories:
   - repository: ci
