@@ -58,7 +58,7 @@
   };
 
   defaults = {
-    glibcLocales = [ cipkgs.glibcLocales ];
+    #glibcLocales = [ cipkgs.glibcLocales ];
   };
   overrides = {
     inherit nixPath;
