@@ -5,6 +5,7 @@ unset NIX_PATH
 if ! command -v nix > /dev/null; then
 	# install nix!
 	NIX_VERSION=${NIX_VERSION-latest}
+	export _NIX_INSTALLER_TEST=1
 	sh <(curl https://nixos.org/releases/nix/$NIX_VERSION/install) --no-daemon
 fi
 
