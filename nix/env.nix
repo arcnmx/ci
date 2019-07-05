@@ -10,6 +10,11 @@
   coreutils = builtins.storePath (/. + nixConfig.coreutils + "/..");
   nix = builtins.storePath (/. + nixConfig.nixPrefix);
   runtimeShell = nixConfig.shell;
+  cacert = let
+    sslCertFile = builtins.getEnv "NIX_SSL_CERT_FILE";
+  in if cipkgs.lib.isStorePath sslCertFile
+  then builtins.storePath (/. + sslCertFile + "/../../../..")
+  else cipkgs.cacert;
   cachix = if (config.cache.cachix or {}) != {}
     then cipkgs.cachix
     else null;
