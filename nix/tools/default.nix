@@ -2,19 +2,19 @@
   pkgs ? import <nixpkgs> { }
 }: let
   derivations = {
-    ci-query = { substituteAll, runtimeShell, yq, nix }: substituteAll {
+    ci-query = { substituteAll, runtimeShell, nix }: substituteAll {
       name = "ci-query";
       dir = "bin";
       src = ./query.sh;
       isExecutable = true;
-      inherit runtimeShell yq nix;
+      inherit runtimeShell nix;
     };
-    ci-dirty = { substituteAll, runtimeShell, coreutils, jq }: substituteAll {
+    ci-dirty = { substituteAll, runtimeShell, coreutils }: substituteAll {
       name = "ci-dirty";
       dir = "bin";
       src = ./dirty.sh;
       isExecutable = true;
-      inherit runtimeShell coreutils jq;
+      inherit runtimeShell coreutils;
     };
   };
 in with derivations; {
