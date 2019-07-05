@@ -1,19 +1,49 @@
 { cipkgs, nixPath, config }: with cipkgs; let
   prefix = "ci";
+  configBasePackages = config.basePackages or { };
   nixConfig = import <nix/config.nix>;
-  nixConfigPaths = builtins.mapAttrs (k: v: /. + v + "/../..") {
+  nixConfigPaths = builtins.mapAttrs (k: v: builtins.storePath (/. + v + "/../..")) {
     # nix appears to expect these to be available in PATH
-    inherit (nixConfig) tar gzip xz bzip2;
+    inherit (nixConfig) tar gzip xz bzip2 shell;
   };
   inherit (nixConfigPaths) tar gzip bzip2 xz;
-  coreutils = /. + nixConfig.coreutils + "/..";
-  nix = /. + nixConfig.nixPrefix;
+  coreutils = builtins.storePath (/. + nixConfig.coreutils + "/..");
+  nix = builtins.storePath (/. + nixConfig.nixPrefix);
   runtimeShell = nixConfig.shell;
   cachix = if (config.cache.cachix or {}) != {}
     then cipkgs.cachix
     else null;
+  trivialBuilders =
+    # NOTE: older nixpkgs trivial-builders does not accept a runtimeShell argument
+    cipkgs.lib.callPackageWith { inherit runtimeShell; } (import (cipkgs.path + "/pkgs/build-support/trivial-builders.nix")) {
+      inherit (cipkgs) lib stdenv;
+      inherit (cipkgs.xorg) lndir;
+      inherit stdenvNoCC;
+    };
+  stdenvNoCC = with cipkgs.lib; cipkgs.stdenvNoCC.override (old: {
+      name = "stdenv-ci";
+
+      cc = null;
+      extraNativeBuildInputs = [ ];
+      shell = runtimeShell;
+      extraAttrs = {
+        noCC = true;
+      };
+      allowedRequisites = null;
+      overrides = self: super: { };
+
+      # missing vs standard common path: findutils, diffutils, gnused, gnugrep, gawk, gnumake, patch
+      # gawk, patch, gnumake, gnused, gnugrep: only glibc dep, not so bad?
+      # findutils+diffutils depend on coreutils for a silly reason...
+      initialPath = [ nixConfigPaths.shell coreutils bzip2 gzip tar xz cipkgs.gawk ];
+  });
   tools = import ./tools {
-    pkgs = cipkgs;
+    pkgs = {
+      callPackage = cipkgs.lib.callPackageWith (cipkgs // {
+        inherit nix coreutils runtimeShell;
+        substituteAll = cipkgs.substituteAll.override { inherit stdenvNoCC; };
+      } // (cipkgs.lib.filterAttrs (_: p: p != null) configBasePackages));
+    };
   };
   nixConfigFile = builtins.toFile "nix.conf" ''
     cores = 0
@@ -23,9 +53,9 @@
     inherit nix cachix coreutils gzip tar xz bzip2;
     ci-dirty = (ci-dirty.override { inherit runtimeShell; });
     ci-query = (ci-query.override { inherit nix runtimeShell; });
-  } // (config.basePackages or { });
+  } // configBasePackages;
   packages = packagesBase // (config.packages or { }); # TODO: turn this into an overlay?
-  bin = symlinkJoin {
+  bin = trivialBuilders.symlinkJoin {
     name = "ci-env-bin";
     paths = builtins.attrValues packagesBase;
   };
@@ -80,8 +110,8 @@
   };
 
   # second stage bootstrap env
-  runtimeEnv = runCommandNoCC "ci-env-runtime" (envCommon // {
-    bin = symlinkJoin {
+  runtimeEnv = trivialBuilders.runCommandNoCC "ci-env-runtime" (envCommon // {
+    bin = trivialBuilders.symlinkJoin {
       name = "ci-env-bin-runtime";
       paths = builtins.attrValues packages;
     };
@@ -92,7 +122,7 @@
     substituteAll $envPath $out/$prefix/env
   '';
 
-  env = runCommandNoCC "ci-env" (envCommon // {
+  env = trivialBuilders.runCommandNoCC "ci-env" (envCommon // {
     passAsFile = [ "setup" ] ++ envCommon.passAsFile;
 
     cachixUse = builtins.attrNames (config.cache.cachix or {});
