@@ -73,12 +73,26 @@
   } // nixPath' // (out.nixPath or {});
   channels = builtins.mapAttrs (_: v: import v { }) nixPath;
 
+  hostPath = with cipkgs.lib; let
+    paths' = splitString ":" (builtins.getEnv "PATH");
+    paths = builtins.filter (p: p != "") paths';
+  in map (path: { inherit path; prefix = ""; }) paths;
+  hostDep = name: bins: with cipkgs.lib; let
+    binTry = map (bin: builtins.tryEval (builtins.findFile hostPath bin)) (toList bins);
+    success = all (bin: bin.success) binTry;
+    binPaths = map (bin: bin.value) binTry;
+    drv = cipkgs.linkFarm "${name}-host-impure" (map (bin: {
+      name = "bin/${builtins.baseNameOf bin}"; path = toString bin;
+    }) binPaths);
+  in if success then drv else null;
   args = {
-    inherit cipkgs nixPath channels nixpkgsBundled;
+    inherit cipkgs nixPath channels nixpkgsBundled hostDep;
     screamingSnakeCase = with cipkgs.lib; s: builtins.replaceStrings [ "-" ] [ "_" ] (toUpper s);
     channelsFromEnv = with cipkgs.lib; trans: prefix: filterAttrs (_: v: v != "") (
       listToAttrs (map (ch: nameValuePair ch (builtins.getEnv "${prefix}${trans ch}")) (attrNames channelUrls))
     );
+    ci = args;
+    pkgs = cipkgs; # TODO: throw "use cipkgs instead"?
   };
 
   defaults = {
@@ -91,11 +105,23 @@
     inherit nixPath;
   };
 
+  # callPackagesWith without the overrides
+  functionArgs = f: f.__functionArgs or (builtins.functionArgs f);
+  isFunction = f: builtins.isFunction f || (f ? __functor && isFunction (f.__functor f));
+  callWithArgs = autoArgs: fn: args: let
+    f = if isFunction fn then fn else import fn;
+    auto = builtins.intersectAttrs (functionArgs f) autoArgs;
+  in auto // args;
+  callWith = autoArgs: fn: args: let
+    f = if isFunction fn then fn else import fn;
+  in f (callWithArgs autoArgs f args);
+
   config' = if builtins.isString config
     then scope.nixPathScopedImport (scope.nixPathList nixPath) (toString configPath)
     else config;
-  config'' = if builtins.isFunction config'
-    then config' args
+  config'' = if isFunction config'
+    then callWith args config' { }
     else config';
-  out = defaults // config'';
+  config''' = config''.ciConfig or config'';
+  out = defaults // config''';
 in out // overrides

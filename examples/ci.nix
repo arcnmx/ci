@@ -1,4 +1,4 @@
-{ cipkgs, ... }@ci: let
+{ ci ? throw "ci" }: let
   pkgs = import <nixpkgs> { };
 in { # example config file
   channels = {
@@ -12,7 +12,7 @@ in { # example config file
   };
 
   # pinned/stable nixpkgs that become part of the base environment
-  basePackages = with cipkgs; {
+  basePackages = with ci.cipkgs; {
     inherit hello;
   };
 
@@ -24,7 +24,7 @@ in { # example config file
     inherit (nur.repos.dtz.pkgs) crex;
   };
 
-  glibcLocales = [ cipkgs.glibcLocales pkgs.glibcLocales ];
+  glibcLocales = [ ci.cipkgs.glibcLocales pkgs.glibcLocales ];
 
   cache.cachix = {
     arc = {};
