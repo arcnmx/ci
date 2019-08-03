@@ -1,14 +1,14 @@
 { cipkgs, nixPath, config }: with cipkgs; let
   prefix = "ci";
   nixConfig = import <nix/config.nix>;
-  nixConfigPaths = builtins.mapAttrs (k: v: /. + v + "/../..") {
+  nixConfigPaths = builtins.mapAttrs (k: v: builtins.storePath (/. + v + "/../..")) {
     # nix appears to expect these to be available in PATH
     inherit (nixConfig) tar gzip xz bzip2 shell;
   };
   inherit (nixConfigPaths) tar gzip bzip2 xz shell;
-  coreutils = /. + nixConfig.coreutils + "/..";
-  nix = /. + nixConfig.nixPrefix;
-  runtimeShell = nixConfig.shell;
+  coreutils = builtins.storePath (/. + nixConfig.coreutils + "/..");
+  nix = builtins.storePath (/. + nixConfig.nixPrefix);
+  runtimeShell = builtins.storePath nixConfig.shell;
   cachix = if (config.cache.cachix or {}) != {}
     then cipkgs.cachix
     else null;
