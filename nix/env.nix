@@ -3,9 +3,9 @@
   nixConfig = import <nix/config.nix>;
   nixConfigPaths = builtins.mapAttrs (k: v: /. + v + "/../..") {
     # nix appears to expect these to be available in PATH
-    inherit (nixConfig) tar gzip xz bzip2;
+    inherit (nixConfig) tar gzip xz bzip2 shell;
   };
-  inherit (nixConfigPaths) tar gzip bzip2 xz;
+  inherit (nixConfigPaths) tar gzip bzip2 xz shell;
   coreutils = /. + nixConfig.coreutils + "/..";
   nix = /. + nixConfig.nixPrefix;
   runtimeShell = nixConfig.shell;
@@ -20,7 +20,7 @@
     max-jobs = 8
   '';
   packagesBase = with tools; {
-    inherit nix cachix coreutils gzip tar xz bzip2;
+    inherit nix cachix coreutils gzip tar xz bzip2 shell;
     ci-dirty = (ci-dirty.override { inherit runtimeShell; });
     ci-query = (ci-query.override { inherit nix runtimeShell; });
   } // (config.basePackages or { });
