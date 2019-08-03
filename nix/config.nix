@@ -21,10 +21,12 @@
     "19.03-small" = if cipkgs.hostPlatform.isDarwin
       then nixpkgsChannels."19.03"
       else "nixos-19.03-small";
-    unstable = "nixpkgs-unstable";
-    unstable-small = if cipkgs.hostPlatform.isDarwin
-      then nixpkgsChannels.unstable
-      else "nixos-unstable-small";
+    unstable = if cipkgs.hostPlatform.isLinux
+      then "nixos-unstable"
+      else "nixpkgs-unstable";
+    unstable-small = if cipkgs.hostPlatform.isLinux
+      then "nixos-unstable-small"
+      else nixpkgsChannels.unstable;
   };
 
   nixpkgsSource = { rev, sha256 }: import <nix/fetchurl.nix> {
