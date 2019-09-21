@@ -30,6 +30,10 @@ steps:
         Darwin.x86_64) NIX_SYSTEM=x86_64-darwin;;
       esac
 
+      if [[ $NIX_VERSION = latest ]]; then
+        NIX_VERSION=$(curl -fsSL $NIX_URL/install | grep -o 'nix-[0-9.]*' | tail -n1)
+      fi
+
       sudo mkdir -pm 0755 /nix /etc/nix && sudo chown $(id -u) /nix /etc/nix
       if curl -fsSLI $NIX_URL/nix-${NIX_VERSION#nix-}-$NIX_SYSTEM.tar.xz; then
         tar -C /nix --strip-components=1 -xJf <(curl -fSL $NIX_URL/nix-${NIX_VERSION#nix-}-$NIX_SYSTEM.tar.xz)
