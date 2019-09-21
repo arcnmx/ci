@@ -9,6 +9,7 @@ parameters:
   nixChannels: {}
   config: MUST_PROVIDE_CONFIG_FILE
   timeoutInMinutes: 5
+  displayName: nix install
 steps:
 - bash: |
     if [[ -z ${CI_ENV-} ]]; then
@@ -51,13 +52,14 @@ steps:
 
       $NIX_STORE_NIX/bin/nix-store --init && $NIX_STORE_NIX/bin/nix-store --load-db < /nix/.reginfo
       rm /nix/*.sh /nix/.reginfo
+
+      sudo chown 0:0 / || true
     }
 
     set -eu
     nix_install &&
-    bash -lc "nix-build --show-trace -o $CI_ENV $CI_URL -A env --argstr config $CI_CONFIG" &&
-    bash -c ci-setup
-  displayName: nix install
+    bash -lc "nix -L --show-trace run -f $CI_URL env.bootstrapEnv --argstr config $CI_CONFIG -c ci-setup"
+  displayName: ${{parameters.displayName}}
   timeoutInMinutes: ${{parameters.timeoutInMinutes}}
   env:
     CI_CONFIG: ${{parameters.config}}

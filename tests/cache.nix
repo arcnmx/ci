@@ -1,6 +1,6 @@
 {
   ciConfig = {
-    cache.cachix.arc = { };
+    cache.cachix.ci = { };
   };
   touch = with import <nixpkgs> { }; runCommand "touch" {
     inherit system;

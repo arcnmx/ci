@@ -15,12 +15,11 @@ CI_CONFIG=ci.nix
 
 # build the base/bootstrap environment
 # just core dependencies, CI helper scripts, cachix, pinned to a stable nixpkgs
-bash -lc "nix-build --show-trace -o $CI_ENV ../ -A env --argstr config $CI_CONFIG"
+bash -lc "nix -L --show-trace run -f ../ env.bootstrapEnv --argstr config $CI_CONFIG -c ci-setup"
 
 # setup replaces CI_ENV with final environment
 # this step installs dependencies from channels, can use additional caches, etc.
 export BASH_ENV=$CI_ENV/ci/source
-bash -c ci-setup # $CI_ENV/ci/bin/ci-setup
 
 # environment ready to go at this point
 bash -c "crex --help | lolcat"
