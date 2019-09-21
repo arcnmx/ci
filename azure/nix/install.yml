@@ -35,7 +35,7 @@ steps:
       fi
 
       sudo mkdir -pm 0755 /nix /etc/nix && sudo chown $(id -u) /nix /etc/nix
-      if curl -fsSLI $NIX_URL/nix-${NIX_VERSION#nix-}-$NIX_SYSTEM.tar.xz; then
+      if curl -fsSLI $NIX_URL/nix-${NIX_VERSION#nix-}-$NIX_SYSTEM.tar.xz > /dev/null; then
         tar -C /nix --strip-components=1 -xJf <(curl -fSL $NIX_URL/nix-${NIX_VERSION#nix-}-$NIX_SYSTEM.tar.xz)
       else
         tar -C /nix --strip-components=1 -xjf <(curl -fSL $NIX_URL/nix-${NIX_VERSION#nix-}-$NIX_SYSTEM.tar.bz2)
