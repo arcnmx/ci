@@ -1,0 +1,50 @@
+[package]
+name = "{{cookiecutter.crate_name}}"
+version = "{{cookiecutter.version}}" # keep in sync with html_root_url
+authors = ["{{cookiecutter.author}}"]
+edition = "2018"
+
+description = "{{cookiecutter.crate_name}}"
+keywords = []
+categories = [] # https://crates.io/category_slugs
+
+{% if cookiecutter.homepage %}
+status = "{{cookiecutter.homepage}}"
+{% endif %}
+documentation = "https://docs.rs/{{cookiecutter.crate_name}}/"
+repository = "{{cookiecutter.repo_url}}"
+readme = "README.md"
+license = "{{cookiecutter.license}}"
+license-file = "COPYING"
+
+[package.metadata.docs.rs]
+all-features = true
+
+{% if cookiecutter.maintenance %}
+[badges.maintenance]
+status = "{{cookiecutter.maintenance}}"
+{% endif %}
+
+{% if cookiecutter.travis_ci %}
+[badges.travis-ci]
+repository = "{{cookiecutter.repo_slug}}"
+branch = "{{cookiecutter.ci_branch}}"
+{% endif %}
+
+{% if cookiecutter.pipelines_project %}
+[badges.azure-devops]
+project = "{{cookiecutter.pipelines_project}}"
+pipeline = "{{cookiecutter.pipelines_pipeline}}"
+{%- if cookiecutter.pipelines_build %}
+	build = "{{cookiecutter.pipelines_build}}"
+{% endif %}
+{% endif %}
+
+{% if cookiecutter.codecov %}
+[badges.travis-ci]
+repository = "{{cookiecutter.repo_slug}}"
+branch = "{{cookiecutter.ci_branch}}"
+service = "{{cookiecutter.source_host}}"
+{% endif %}
+
+[dependencies]

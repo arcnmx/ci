@@ -1,0 +1,23 @@
+{
+	"author": "Me",
+	"repo_user": "me",
+	"project": "Project",
+	"homepage": "",
+	"version": "0.1.0",
+	"license": ["MIT"],
+	"ci_branch": "master",
+	"travis_ci": [false, true],
+	"codecov": [false, true],
+	"repo_host": ["github", "bitbucket"],
+	"pipelines_project": "",
+	"pipelines_pipeline": "",
+	"pipelines_build": "",
+	"cachix_keys": {
+      "arc": "arc.cachix.org-1:DZmhclLkB6UO0rc0rBzNpwFbbaeLfyn+fYccuAy7YVY="
+	},
+	"project_slug": "{{cookiecutter.project|lower|replace(' ', '-')}}",
+	"crate_name": "{{cookiecutter.project_slug|replace('-', '_')}}",
+	"repo_slug": "{{cookiecutter.repo_user}}/{{cookiecutter.project_slug}}",
+	"repo_url": "{% if cookiecutter.repo_host == 'github' %}https://github.com/{{cookiecutter.repo_slug}}{% else if cookiecutter.repo_host == 'bitbucket' %}https://bitbucket.org/{{cookiecutter.repo_slug}}{% endif %}",
+	"maintenance": ["passively-maintained", "actively-developed", "passively-maintained", "as-is", "none", "experimental", "looking-for-maintainer", "deprecated"]
+}

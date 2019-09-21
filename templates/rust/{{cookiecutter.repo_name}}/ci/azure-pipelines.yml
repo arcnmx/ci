@@ -1,0 +1,22 @@
+name: $(TeamProject).$(Build.DefinitionName).$(BuildID)$(Rev:.r)_$(SourceBranchName).$(Date:yyyyMMdd).$(Build.Reason)
+resources:
+  repositories:
+  - repository: ci
+    type: github
+    name: arcnmx/ci
+    ref: refs/heads/master
+    endpoint: github/arcnmx/ci
+variables:
+  NIX_CHANNELS_MOZILLA: master
+  CI_ALLOW_ROOT: true
+  CI_CLOSE_STDIN: true # why does azure do this...
+  TERM: linux
+pool:
+  vmImage: ubuntu-latest
+steps:
+- template: azure/nix/install.yml@ci
+  parameters:
+    config: ci/ci.nix
+    ciVersion: master
+- bash: crex --help | lolcat
+  displayName: crex --help
