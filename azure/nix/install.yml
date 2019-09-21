@@ -19,6 +19,10 @@ steps:
     echo "##vso[task.setvariable variable=BASH_ENV]$BASH_ENV"
 
     nix_install() {
+      if type -P nix > /dev/null; then
+        return
+      fi
+
       case "$(uname -s).$(uname -m)" in
         Linux.x86_64) NIX_SYSTEM=x86_64-linux;;
         Linux.i?86) NIX_SYSTEM=i686-linux;;
