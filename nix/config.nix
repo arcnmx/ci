@@ -1,4 +1,4 @@
-{ config, cipkgs, cipkgsPath }: let
+{ config, cipkgs, exec, env }@args: let
   scope = import ./scope.nix { };
   firstOrNull = pred: list: let
     filtered = builtins.filter pred list;
@@ -6,12 +6,12 @@
     then builtins.head filtered
     else null;
   configPath' = firstOrNull builtins.pathExists [
-    (/. + "${builtins.getEnv "PWD"}/${toString config}")
-    (/. + toString config)
+    (/. + "${builtins.getEnv "PWD"}/${toString args.config}")
+    (/. + toString args.config)
   ];
   configPath = firstOrNull (v: v != null) [
     configPath'
-    (toString config)
+    (toString args.config)
   ];
 
   nixpkgsChannels = {
@@ -53,6 +53,7 @@
     };
   };
 
+  # TODO: think about how this will work with flakes. want to expand this to include overlays!
   channelUrls = let
     githubChannel = slug: c: "https://github.com/${slug}/archive/${c}.tar.gz";
   in {
@@ -60,6 +61,7 @@
     nixpkgs = c: "https://nixos.org/channels/${nixpkgsChannels.${c} or c}/nixexprs.tar.xz";
     home-manager = githubChannel "rycee/home-manager";
     mozilla = githubChannel "mozilla/nixpkgs-mozilla";
+    rust = githubChannel "arcnmx/nixexprs-rust";
     nur = githubChannel "nix-community/NUR";
     arc = githubChannel "arcnmx/nixexprs";
     ci = githubChannel "arcnmx/ci";
@@ -69,42 +71,70 @@
     else ch: ch
   ) (out.channels or {});
   nixPath = {
-    nixpkgs = cipkgsPath;
-    cipkgs = cipkgsPath;
+    nixpkgs = config.cipkgs.path;
+    cipkgs = config.cipkgs.path;
     ci = toString ./..;
   } // nixPath' // (out.nixPath or {});
   channels = builtins.mapAttrs (_: v: import v { }) nixPath;
 
   hostPath = with cipkgs.lib; let
     paths' = splitString ":" (builtins.getEnv "PATH");
-    paths = builtins.filter (p: p != "") paths';
+    paths = builtins.filter (p: p != "") (filter builtins.pathExists paths');
   in map (path: { inherit path; prefix = ""; }) paths;
   hostDep = name: bins: with cipkgs.lib; let
     binTry = map (bin: builtins.tryEval (builtins.findFile hostPath bin)) (toList bins);
     success = all (bin: bin.success) binTry;
     binPaths = map (bin: bin.value) binTry;
     drv = cipkgs.linkFarm "${name}-host-impure" (map (bin: {
-      name = "bin/${builtins.baseNameOf bin}"; path = toString bin;
+      name = "bin-${builtins.baseNameOf bin}";
+      path = toString bin;
     }) binPaths);
   in if success then drv else null;
-  args = {
+  configArgs = {
     inherit cipkgs nixPath channels nixpkgsBundled hostDep;
+    inherit config exec env;
     screamingSnakeCase = with cipkgs.lib; s: builtins.replaceStrings [ "-" ] [ "_" ] (toUpper s);
     channelsFromEnv = with cipkgs.lib; trans: prefix: filterAttrs (_: v: v != "") (
       listToAttrs (map (ch: nameValuePair ch (builtins.getEnv "${prefix}${trans ch}")) (attrNames channelUrls))
     );
-    ci = args;
-    pkgs = cipkgs; # TODO: throw "use cipkgs instead"?
+    ci = configArgs;
+    pkgs = cipkgs; # TODO: throw "use cipkgs instead"? This should actually be nixPath.nixpkgs, with configured settings/overlays/etc.
+
+    inherit (cipkgs) mkCiTask mkCiCommand mkCiSystem;
+  };
+
+  cache = {
+    substituters = with builtins;
+      [ "https://cache.nixos.org/" ]
+      ++ attrValues (mapAttrs (name: c: c.substituter or "https://${name}.cachix.org") (out.cache.cachix or {}));
+    trusted-public-keys = with builtins;
+      [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ]
+      ++ concatMap (c: c.keys or []) (out.cache.cachix or {});
+    cachixUse = with cipkgs.lib;
+      attrNames (filterAttrs (_: cachix: !(cachix ? keys)) out.cache.cachix or {});
+    cachixKeys = with cipkgs.lib;
+      mapAttrs (_: cachix: cachix.signing-key)
+      (filterAttrs (_: cachix: !(cachix ? signing-key)) out.cache.cachix or {});
   };
 
   defaults = {
-    cipkgsPath = nixpkgsBundled.${builtins.nixVersion} or nixpkgsBundled."19.03";
-    cipkgsConfig = { };
-    cipkgs = import out.cipkgsPath { config = out.cipkgsConfig; };
     #glibcLocales = [ cipkgs.glibcLocales ];
   };
   overrides = {
     inherit nixPath;
+    cache = cache // out.cache or {};
+
+    cipkgs = {
+      # https://github.com/NixOS/nixpkgs/blob/master/pkgs/top-level/impure.nix
+      path = nixpkgsBundled.${builtins.nixVersion} or nixpkgsBundled."19.03";
+      pkgs = import config.cipkgs.path (builtins.removeAttrs config.cipkgs [ "path" "pkgs" ]);
+    } // out.cipkgs or {} // {
+      overlays = [ (import ./overlay.nix { inherit env; }) ] ++ out.cipkgs.overlays or [];
+      config = {
+        checkMetaRecursively = true;
+      } // out.cipkgs.config or {};
+    };
+    args = configArgs;
   };
 
   # callPackagesWith without the overrides
@@ -118,12 +148,13 @@
     f = if isFunction fn then fn else import fn;
   in f (callWithArgs autoArgs f args);
 
-  config' = if builtins.isString config
+  config' = if builtins.isString args.config || builtins.typeOf args.config == "path"
     then scope.nixPathScopedImport (scope.nixPathList nixPath) (toString configPath)
-    else config;
+    else args.config;
   config'' = if isFunction config'
-    then callWith args config' { }
+    then callWith configArgs config' { }
     else config';
   config''' = config''.ciConfig or config'';
   out = defaults // config''';
-in out // overrides
+  config = out // overrides;
+in config
