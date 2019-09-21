@@ -46,6 +46,10 @@
       rev = "d26f11d38903768bf10036ce70d67e981056424b";
       sha256 = "16d986r76ps7542mbm63dxiavxw9af08l4ffpjp38lpam2cd9zpp";
     };
+    "2.3" = nixpkgsSource {
+      rev = "56b84277cc8c52318a99802878b0725b2e34648e";
+      sha256 = "0rhpkfcfvszvcga7lcy4zqzchglsnvrzphkz59ifp9ihvmxrq14y";
+    };
     "19.03" = nixpkgsSource {
       # random pinned stable version from 2019-06ish
       rev = "d7752fc0ebf9d49dc47c70ce4e674df024a82cfa";
