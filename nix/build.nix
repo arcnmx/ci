@@ -151,12 +151,12 @@
           CI_CACHE_LIST+=(''${drvCache[$1]-})
           ;;
         cache)
-          REPORT_COLOUR=${colours.blue}
+          REPORT_COLOUR=${colours.magenta}
           REPORT_MSG="ok (cached)"
           REPORT_ICON="✔️"
           ;;
         skip|dry)
-          REPORT_COLOUR=${colours.magenta}
+          REPORT_COLOUR=${colours.yellow}
           REPORT_ICON="•"
           if [[ $REPORT_MSG = dry ]]; then
             REPORT_MSG="skipped (dry run)"
