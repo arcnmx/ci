@@ -35,9 +35,8 @@
       else nixpkgsChannels.unstable;
   };
 
-  nixpkgsSource = { rev, sha256 }: import <nix/fetchurl.nix> {
+  nixpkgsSource = { rev, sha256 }: builtins.fetchTarball {
     name = "source";
-    unpack = true;
     url = "https://github.com/nixos/nixpkgs/archive/${rev}.tar.gz";
     inherit sha256;
   };
