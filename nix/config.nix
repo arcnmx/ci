@@ -21,6 +21,12 @@
     "19.03-small" = if cipkgs.hostPlatform.isDarwin
       then nixpkgsChannels."19.03"
       else "nixos-19.03-small";
+    "19.09" = if cipkgs.hostPlatform.isDarwin
+      then "nixpkgs-19.09-darwin"
+      else "nixos-19.09";
+    "19.09-small" = if cipkgs.hostPlatform.isDarwin
+      then nixpkgsChannels."19.09"
+      else "nixos-19.09-small";
     unstable = if cipkgs.hostPlatform.isLinux
       then "nixos-unstable"
       else "nixpkgs-unstable";
