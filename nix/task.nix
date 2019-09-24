@@ -1,4 +1,24 @@
 { self, env }: let
+  mkCiWrapper = { lib, stdenvNoCC }: input: with lib; let
+    wrapped = stdenvNoCC.mkDerivation ({
+      # a wrapper prevents the input itself from being a build-time dependency for a task
+      name = if hasPrefix "ci-" input.name then input.name else "ci-${input.name}";
+
+      inherit input;
+      passthru = input.passthru or {} // {
+        ci = input.passthru.ci or {} // {
+          wrapped = input;
+        };
+      };
+
+      buildCommand = ''
+        # no-op marker for $input
+        mkdir -p $out/nix-support
+      '';
+    } // optionalAttrs (input ? meta) {
+      inherit (input) meta;
+    });
+  in input.ci.wrapped or wrapped;
   mkCiTask = { lib, stdenvNoCC }: with lib; makeOverridable ({
     pname
   , version ? null
@@ -13,26 +33,7 @@
   , displayName ? null
   , ...
   }@args: let
-    wrapInput = input: stdenvNoCC.mkDerivation ({
-      # a wrapper prevents the input itself from being a build-time dependency for the task
-      name = "ci-${input.name or input.pname or "input"}";
-
-      # TODO: ensure the input still gets marked and uploaded properly to the cache once built
-
-      inherit input;
-      passthru = input.passthru or {} // {
-        ci = input.passthru.ci or {} // {
-          wrappedInput = input;
-        };
-      };
-
-      buildCommand = ''
-        # no-op marker for $input
-        mkdir -p $out/nix-support
-      '';
-    } // optionalAttrs (input ? meta) {
-      inherit (input) meta;
-    });
+    wrapInput = mkCiWrapper { inherit lib stdenvNoCC; };
 
     flattenInputs = inputs:
       if inputs ? ci.inputs then flattenInputs inputs.ci.inputs
@@ -52,14 +53,25 @@
       else test;
     partitioned = partition isValid inputs;
     validInputs' = concatMap allDrvs partitioned.right;
-    validInputs = if cache != false then validInputs'
-      else map (i: i.overrideAttrs (old: {
-        passthru = old.passthru or {} // {
-          ci = old.passthru.ci or {} // {
-            cache.enable = false;
+    mapInput = input: if cache == false then input.overrideAttrs (old: {
+      passthru = old.passthru or {} // {
+        ci = old.passthru.ci or {} // {
+          cache.enable = false;
+        };
+      };
+    }) else if cache == { wrap = true; } || input.ci.cache.wrap or false == true then input.overrideAttrs (old: {
+      passthru = old.passthru or {} // {
+        ci = old.passthru.ci or {} // {
+          inputs = old.passthru.ci.inputs or [] ++ [ (wrapInput input) ];
+          cache = {
+            enable = true;
+            inputs = [ (wrapInput input) ];
           };
         };
-      })) validInputs';
+      };
+    }) else input;
+    validInputs = if cache != false then validInputs'
+      else map mapInput validInputs';
     skippedInputs = partitioned.wrong; # TODO: note these somewhere in some way?
     wrappedInputs = map wrapInput validInputs; # TODO: possibly want to be able to filter out warn'd inputs so task can still run when they fail?
     warn = args.warn or false || (any (drv: drv.ci.warn or false) inputs); # tasks inherit any `warn` attributes from inputs
@@ -165,6 +177,7 @@
   in drv);
 in {
   mkCiTask = self.callPackage mkCiTask { };
+  mkCiWrapper = self.callPackage mkCiWrapper { };
   mkCiCommand = self.callPackage mkCiCommand { };
   mkCiSystem = {
     name
