@@ -1,0 +1,15 @@
+name: nix build
+runs:
+  using: node12
+  main: main.js
+description: Internal CI action
+inputs:
+  stage:
+    description: ""
+    required: true
+  configPath:
+    description: ""
+    required: true
+  prefix:
+    description: ""
+    default: ci

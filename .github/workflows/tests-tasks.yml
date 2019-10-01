@@ -1,0 +1,93 @@
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    steps:
+    - id: ci-clone
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: ci-nix-install
+      name: nix install
+      uses: ./actions/nix/install
+    - id: ci-action-build
+      name: nix build ci.gh-actions.configFile
+      uses: ./actions/nix/build
+      with:
+        attrs: ci.gh-actions.configFile
+        options: --arg config ./tests/tasks.nix
+        out-link: .ci/workflow.yml
+    - id: ci-action-compare
+      name: gh-actions compare
+      uses: ./actions/nix/run
+      with:
+        args: -u .github/workflows/tests-tasks.yml .ci/workflow.yml
+        attrs: nixpkgs.diffutils
+        command: diff
+  linux:
+    env:
+      CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      CI_ALLOW_ROOT: '1'
+      CI_CLOSE_STDIN: '1'
+      CI_PLATFORM: gh-actions
+    name: linux
+    runs-on: ubuntu-latest
+    steps:
+    - id: ci-clone
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: ci-nix-install
+      name: nix install
+      uses: ./actions/nix/install
+    - id: ci-setup
+      name: nix build ci-env
+      uses: ./actions/internal/ci-setup
+      with:
+        configPath: ./tests/tasks.nix
+        prefix: ci
+        stage: linux
+    - id: ci-build
+      name: nix test
+      uses: ./actions/internal/ci-build
+      with:
+        configPath: ./tests/tasks.nix
+        prefix: ci
+        stage: linux
+  mac:
+    env:
+      CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      CI_ALLOW_ROOT: '1'
+      CI_CLOSE_STDIN: '1'
+      CI_PLATFORM: gh-actions
+    name: mac
+    runs-on: macOS-latest
+    steps:
+    - id: ci-clone
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: ci-nix-install
+      name: nix install
+      uses: ./actions/nix/install
+    - id: ci-setup
+      name: nix build ci-env
+      uses: ./actions/internal/ci-setup
+      with:
+        configPath: ./tests/tasks.nix
+        prefix: ci
+        stage: mac
+    - id: ci-build
+      name: nix test
+      uses: ./actions/internal/ci-build
+      with:
+        configPath: ./tests/tasks.nix
+        prefix: ci
+        stage: mac
+name: tests-tasks
+'on':
+- push
+- pull_request

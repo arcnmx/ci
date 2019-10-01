@@ -1,13 +1,14 @@
-{ env, config, runtimeEnv }@args: with env; envBuilder {
+{ lib, config }: with lib; {
   pname = "ci-env-bootstrap";
-  packages = builtins.attrValues packagesBase;
+  packages = builtins.attrValues config.ci.env.environment.bootstrap;
 
   passAsFile = [ "setup" "run" ];
 
-  cachixUse = config.cache.cachixUse;
-  inherit (nixConfig) nixSysconfDir;
-  allowRoot = config.allowRoot or "";
-  inherit nixConfigFile cachix coreutils;
+  cachixUse = attrNames (filterAttrs (_: v: v.publicKey == null) config.ci.env.cache.cachix);
+  inherit (config.ci.env.bootstrap.nix.corepkgs.config) nixSysconfDir;
+  inherit (config.ci.env.bootstrap.nix) configFile;
+  inherit (config.ci.env.bootstrap.packages) cachix coreutils;
+  inherit (config.ci.env.bootstrap) allowRoot;
   setup = ''
     #!@runtimeShell@
     set -eu
@@ -17,14 +18,13 @@
 
     asroot() {
       if [[ ! -w @nixSysconfDir@ && -n "@allowRoot@" ]]; then
-        # optionally bring in sudo from cipkgs? setuid is complicated though
         sudo @coreutils@/bin/env PATH="$PATH" NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE "$@"
       else
         "$@"
       fi
     }
     asroot @coreutils@/bin/mkdir -p @nixSysconfDir@/nix &&
-    asroot @coreutils@/bin/tee -a @nixSysconfDir@/nix/nix.conf < @nixConfigFile@ ||
+    asroot @coreutils@/bin/tee -a @nixSysconfDir@/nix/nix.conf < @configFile@ ||
       echo failed to configure @nixSysconfDir@/nix/nix.conf >&2
     for cachixCache in @cachixUse@; do
       asroot @cachix@/bin/cachix use $cachixCache ||
@@ -45,9 +45,9 @@
     exec @nix@/bin/nix run $(@nix@/bin/nix-build --no-out-link @runtimeDrv@) "$@"
   '';
 
-  runtimeDrv = builtins.unsafeDiscardStringContext runtimeEnv.drvPath;
+  runtimeDrv = builtins.unsafeDiscardStringContext config.ci.env.packages.test.drvPath;
   passthru = {
-    ciEnv = runtimeEnv;
+    ciEnv = config.ci.env.environment.test;
   };
 
   command = ''

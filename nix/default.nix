@@ -1,68 +1,37 @@
-{ config ? {} } @ args: let
-  cipkgs = config.cipkgs.pkgs;
-  config = import ./config.nix {
-    inherit cipkgs;
-    config = args.config or {};
-    inherit exec env;
+{ configuration
+, pkgs ? null
+, check ? true
+}@args: let
+  inherit (builtins.import ./lib/cipkgs.nix) nixpkgsPath;
+  import = (builtins.import ./lib/scope.nix { }).nixPathImport {
+    nixpkgs = nixpkgsPath;
   };
-  exec = import ./exec.nix {
-    inherit config env tasks;
-  };
-  env = import ./env.nix {
-    inherit (config) nixPath;
-    inherit cipkgs config;
-  } // {
-    runtimeEnv = import ./runtime.nix { inherit env; };
-    bootstrapEnv = import ./bootstrap.nix {
-      inherit config env;
-      inherit (env) runtimeEnv;
-    };
-    shellEnv = env.runtimeEnv.override (old: {
-      packages = old.packages ++ builtins.attrValues (config.shellPackages or {});
+  pkgs = args.pkgs or (import nixpkgsPath { });
+in with pkgs.lib; let
+  collectFailed = cfg:
+  map (x: x.message) (filter (x: !x.assertion) cfg.assertions);
+  showWarnings = res: let
+    f = w: x: builtins.trace "warning: ${w}" x;
+  in fold f res res.config.warnings;
+  nixosModulesPath = pkgs.path + "/nixos/modules";
+
+  rawModule = evalModules {
+    modules = [ configuration ] ++ (import ./modules.nix {
+      inherit check pkgs nixosModulesPath;
     });
-  };
-  tasks = config.tasks; # TODO: filter by system or otherwise split these up?
-  build = import ./build.nix {
-    inherit cipkgs config exec env;
-  };
-  # TODO:
-  # - fix exec/shell TERM
-  res = {
-    inherit tasks;
-
-    test = build.testAll; # weird rename here hmm
-
-    env = env.bootstrapEnv // env;
-    exec = exec.exec
-      // cipkgs.lib.mapAttrs' (name: value: cipkgs.lib.nameValuePair "task_${name}" (exec.buildTask value)) tasks
-      // config.exec or {};
-
-    source = ''
-      CI_ENV=${env.runtimeEnv}
-
-      function ci_refresh() {
-        local CONFIG_ARGS=(--arg config '${exec.toNix args.config}')
-        if [[ $# -gt 0 ]]; then
-          CONFIG_ARGS=(--argstr config "$1")
-        fi
-        eval "$(${env.nix}/bin/nix eval --show-trace --raw source -f ${toString ./default.nix} "''${CONFIG_ARGS[@]}")"
-      }
-
-      ${builtins.concatStringsSep "\n" (cipkgs.lib.mapAttrsToList (name: eval: ''
-        function ci_${name} {
-          ${eval} "$@"
-        }
-      '') res.exec)}
-    '';
-
-    shell = config.args.pkgs.mkShell {
-      nativeBuildInputs = env.runtimeEnv;
-
-      shellHook = ''
-        eval "${res.source}"
-        source ${env.runtimeEnv}/${env.prefix}/env
-        ci_env_impure
-      '';
+    specialArgs = {
+      modulesPath = builtins.toString ./.;
+      configPath = toString (/. + configuration);
     };
   };
-in res
+
+  module = showWarnings (let
+    failed = collectFailed rawModule.config;
+    failedStr = concatStringsSep "\n" (map (x: "- ${x}") failed);
+  in if failed == []
+    then rawModule
+    else throw "\nFailed assertions:\n${failedStr}"
+  );
+in module.config.ci.export // {
+  inherit (module) options config;
+}

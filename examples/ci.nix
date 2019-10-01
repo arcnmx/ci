@@ -1,37 +1,49 @@
-{ ci ? throw "ci" }: let
-  pkgs = import <nixpkgs> { };
-in { # example config file
-  channels = {
-    # shorthand for common NIX_PATH channels
-    nixpkgs = "19.03";
-  } // ci.channelsFromEnv ci.screamingSnakeCase "NIX_CHANNELS_"; # overrides from the environment
+{ pkgs, lib, config, ... }: with lib; {
+  ci.project.name = "example";
+  ci.gh-actions.enable = true;
+  ci.env = {
+    channels = {
+      # shorthand for common NIX_PATH channels
+      nixpkgs = "19.03";
+      # custom NIX_PATH, pinned channels, etc.
+      nur.url = "https://github.com/nix-community/NUR/archive/master.tar.gz";
+      nur.args = { inherit pkgs; };
+    };
 
-  nixPath = {
-    # custom NIX_PATH, pinned channels, etc.
-    nur = "https://github.com/nix-community/NUR/archive/master.tar.gz";
+    # pinned/stable nixpkgs that become part of the base environment
+    environment.bootstrap = with config.ci.env.bootstrap.pkgs; {
+      inherit hello;
+    };
+
+    # dependencies that can use custom caches and channels
+    environment.test = let
+      nur = config.ci.env.channels.nur.import;
+    in {
+      inherit (pkgs) lolcat ncurses;
+      inherit (nur.repos.dtz.pkgs) crex;
+    };
+
+    glibcLocales = [ config.ci.env.bootstrap.pkgs.glibcLocales pkgs.glibcLocales ];
+
+    cache.cachix.ci.enable = true;
   };
-
-  # pinned/stable nixpkgs that become part of the base environment
-  basePackages = with ci.cipkgs; {
-    inherit hello;
+  gh-actions.jobs = {
+    ci.steps = mkAfter [ {
+      run = "crex --help | lolcat";
+    } ];
+    script = {
+      name = "example script";
+      steps = [ {
+        uses = {
+          owner = "actions";
+          repo = "checkout";
+          version = "v1";
+        };
+      } {
+        name = "example.sh";
+        run = "./example.sh";
+        working-directory = "examples";
+      } ];
+    };
   };
-
-  # dependencies that can use custom caches and channels
-  packages = let
-    nur = import <nur> { inherit pkgs; };
-  in {
-    inherit (pkgs) lolcat ncurses;
-    inherit (nur.repos.dtz.pkgs) crex;
-  };
-
-  glibcLocales = [ ci.cipkgs.glibcLocales pkgs.glibcLocales ];
-
-  cache.cachix = {
-    arc = {};
-  };
-
-  # allow setup to modify host environment
-  # (allows /etc/nix/nix.conf modifications)
-  allowRoot = (builtins.getEnv "CI_ALLOW_ROOT") != "";
-  closeStdin = (builtins.getEnv "CI_CLOSE_STDIN") != "";
 }

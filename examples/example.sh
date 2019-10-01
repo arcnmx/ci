@@ -11,11 +11,11 @@ fi
 
 # set up a known path where our environment goes
 export CI_ENV=$PWD/result
-CI_CONFIG=ci.nix
+CI_CONFIG=./ci.nix
 
 # build the base/bootstrap environment
 # just core dependencies, CI helper scripts, cachix, pinned to a stable nixpkgs
-bash -lc "nix -L --show-trace run -f ../ env.bootstrapEnv --argstr config $CI_CONFIG -c ci-setup"
+bash -lc "nix run -Lf ../ environment --arg config $CI_CONFIG -c ci-setup"
 
 # setup replaces CI_ENV with final environment
 # this step installs dependencies from channels, can use additional caches, etc.

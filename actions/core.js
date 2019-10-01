@@ -1,6 +1,8 @@
 const process = require('process');
 const os = require('os');
 
+process.env['PWD'] = process.cwd();
+
 function writeCommand(cmd) {
   process.stdout.write(cmd + os.EOL)
 }

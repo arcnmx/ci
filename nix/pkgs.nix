@@ -1,1 +1,1 @@
-import (import ./modules/lib/cipkgs.nix).nixpkgsPath
+import (import ./lib/cipkgs.nix).nixpkgsPath
