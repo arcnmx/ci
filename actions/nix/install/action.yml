@@ -1,0 +1,24 @@
+name: nix install
+runs:
+  using: node12
+  main: main.js
+description: Install nix in the GitHub Actions virtual environment.
+inputs:
+  version:
+    description: nix version to install
+    default: latest # examples: latest, 2.3, 2.2.1
+  timeout:
+    description: minutes to wait before failing
+    default: 2
+  daemon:
+    description: Install nix in multi-user mode (currently unimplemented)
+    default: false
+  nix-path:
+    description: NIX_PATH channels to make available to the job
+    default: "" # example: nixpkgs=https://nixos.org/channels/nixos-19.09/nixexprs.tar.xz
+outputs:
+  version:
+    description: The nix version installed
+branding:
+  icon: hexagon
+  color: blue

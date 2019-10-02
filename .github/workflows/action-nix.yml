@@ -1,0 +1,82 @@
+name: actions/nix
+on:
+  pull_request:
+    paths:
+    - actions/*.js
+    - actions/nix/**
+    - .github/workflows/action-nix.yml
+    - nix/tools/install.sh
+  push:
+    paths:
+    - actions/*.js
+    - actions/nix/**
+    - .github/workflows/action-nix.yml
+    - nix/tools/install.sh
+
+jobs:
+  install:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        - macOS-latest
+        nix-version:
+        - latest
+        - '2.3'
+        - 2.2.1
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v1
+    - id: nix-install
+      uses: ./actions/nix/install
+      with:
+        version: ${{ matrix.nix-version }}
+    - run: nix --version
+    - run: |
+        if [[ $(nix --version | cut -d ' ' -f 3) != $NIX_VERSION ]]; then
+          echo ::error::Installed nix version did not match expected $NIX_VERSION
+          false
+        fi
+      env:
+        NIX_VERSION: ${{ steps.nix-install.outputs.version }}
+  install-nix-path:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        - macOS-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v1
+    - uses: ./actions/nix/install
+      with:
+        nix-path: nixpkgs=https://nixos.org/channels/nixos-19.09/nixexprs.tar.xz
+    - uses: ./actions/nix/run
+      with:
+        attrs: nixpkgs.hello
+        command: hello
+  build:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        - macOS-latest
+        nix2:
+        - true
+        - false
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v1
+    - uses: ./actions/nix/install
+    - uses: ./actions/nix/run
+      with:
+        attrs: nixpkgs.hello
+        command: hello
+        quiet: false
+    - run: '! hello'
+    - uses: ./actions/nix/build
+      with:
+        attrs: nixpkgs.hello
+        add-path: true
+        nix2: ${{ matrix.nix2 }}
+    - run: hello

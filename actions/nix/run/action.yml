@@ -1,0 +1,40 @@
+name: nix run
+runs:
+  using: node12
+  main: main.js
+description: Run a command with nix packages in the environment
+inputs:
+  attrs:
+    description: Attributes to build
+    default: ""
+  file:
+    description: Path of nix expression to build, or a channel such as <nixpath>
+    default: ""
+  options:
+    description: Extra options to pass to nix
+    default: ""
+  command:
+    description: Command to run
+    required: true
+  args:
+    description: Command arguments
+    default: ""
+  stdout:
+    description: Save stdout to the specified path
+    default: ""
+  ignore-exit-code:
+    description: Ignore command failures
+    default: false
+  quiet:
+    description: Silence logging
+    default: true
+  nix-path:
+    description: Extra nix path arguments, colon-separated
+    default: ""
+  # TODO: option to tee stdout?
+outputs:
+  exit-code:
+    description: The code the process exited with
+branding:
+  icon: hexagon
+  color: blue

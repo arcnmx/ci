@@ -1,0 +1,36 @@
+name: nix build
+runs:
+  using: node12
+  main: main.js
+description: Build a nix derivation
+inputs:
+  attrs:
+    description: Attributes to build
+    default: ""
+  file:
+    description: Path of nix expression to build, or a channel such as <nixpath>
+    default: ""
+  out-link:
+    description: Output link to write
+    default: ""
+  add-path:
+    description: Add the resulting build output to PATH
+    default: false
+  options:
+    description: Extra options to pass to nix
+    default: ""
+  quiet:
+    description: Silence logging
+    default: false
+  nix-path:
+    description: Extra nix path arguments, colon-separated
+    default: ""
+  nix2:
+    description: Use the nix 2.0 interface
+    default: true
+outputs:
+  out-link:
+    description: Link created by the build
+branding:
+  icon: hexagon
+  color: blue
