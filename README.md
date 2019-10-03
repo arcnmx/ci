@@ -39,5 +39,6 @@ Provides functionality similar to
   Pages. Requires a run of `cargo doc` beforehand. Must be passed an OAuth
   token as the first argument or via the `$GH_TOKEN` environment variable.
 
-[ci-badge]: https://dev.azure.com/arcnmx/CI/_apis/build/status/ci?branchName=master
-[ci]: https://dev.azure.com/arcnmx/CI/_build/latest?definitionId=4
+
+[ci-badge]: https://github.com/arcnmx/ci/workflows/tests-tasks/badge.svg
+[ci]: https://github.com/arcnmx/ci/actions

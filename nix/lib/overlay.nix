@@ -3,6 +3,8 @@
     wrapped = stdenvNoCC.mkDerivation ({
       # a wrapper prevents the input itself from being a build-time dependency for a task
       name = if hasPrefix "ci-" input.name then input.name else "ci-${input.name}";
+      preferLocalBuild = true;
+      allowSubstitutes = true;
 
       inherit input;
       passthru = input.passthru or {} // {
