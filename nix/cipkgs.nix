@@ -34,6 +34,6 @@ in {
     config = {
       checkMetaRecursively = true;
     };
-    pathFor = cipkgs.nixpkgsFor;
+    pathFor = mapAttrs (_: builtins.fetchTarball) cipkgs.nixpkgsFor;
   };
 }

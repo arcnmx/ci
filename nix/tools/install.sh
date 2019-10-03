@@ -49,10 +49,18 @@ $NIX_PATH_DIR/nix-store --init
 $NIX_PATH_DIR/nix-store --load-db < $NIX_STORE_DIR/.reginfo
 rm $NIX_STORE_DIR/.reginfo
 
+if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
+  export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$($NIX_PATH_DIR/nix eval --raw -f "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
+fi
+
 case "${CI_PLATFORM-}" in
   gh-actions)
     echo "::set-output name=version::$NIX_VERSION"
+    echo "::set-output name=nix-path::${NIX_PATH-}"
     echo "::set-env name=NIX_SSL_CERT_FILE::$NIX_SSL_CERT_FILE"
+    if [[ -n ${NIX_PATH-} ]]; then
+      echo "::set-env name=NIX_PATH::$NIX_PATH"
+    fi
     echo "::add-path::$NIX_PATH_DIR"
     sudo chown 0:0 / || true
     ;;

@@ -19,6 +19,8 @@ inputs:
 outputs:
   version:
     description: The nix version installed
+  nix-path:
+    description: The NIX_PATH search directories
 branding:
   icon: hexagon
   color: blue

@@ -6,12 +6,16 @@ on:
     - actions/nix/**
     - .github/workflows/action-nix.yml
     - nix/tools/install.sh
+    - nix/compat.nix
+    - nix/lib/cipkgs.nix
   push:
     paths:
     - actions/*.js
     - actions/nix/**
     - .github/workflows/action-nix.yml
     - nix/tools/install.sh
+    - nix/compat.nix
+    - nix/lib/cipkgs.nix
 
 jobs:
   install:

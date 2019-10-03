@@ -1,5 +1,5 @@
 rec {
-  nixpkgsSource = { rev, sha256 }: builtins.fetchTarball {
+  nixpkgsSource = { rev, sha256 }: {
     name = "source";
     url = "https://github.com/nixos/nixpkgs/archive/${rev}.tar.gz";
     inherit sha256;
@@ -25,6 +25,7 @@ rec {
       sha256 = "1rw4fgnm403yf67lgnvalndqqy6ln6bz1grd6zylrjblyxnhqkmj";
     };
   };
-  nixpkgsPath = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor."19.03";
+  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor."19.03";
+  nixpkgsPath = builtins.fetchTarball nixpkgsUrl;
   nixpkgs = args: import nixpkgsPath args;
 }
