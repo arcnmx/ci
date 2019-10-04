@@ -162,6 +162,16 @@ in {
             type = types.attrs;
             default = { };
           };
+          overlays = mkOption {
+            type = types.listOf types.unspecified;
+            default = {
+              rust = [ (config.path + "/overlay.nix") ];
+              arc = [ (config.path + "/overlay.nix") ];
+              home-manager = [ (config.path + "/overlay.nix") ];
+              mozilla = import (config.path + "/overlays.nix");
+              #ci = import (config.path + "/nix/lib/overlay.nix");
+            }.${config.name} or [];
+          };
           import = mkOption {
             type = types.unspecified;
             internal = true;
@@ -180,7 +190,8 @@ in {
           import = let
             args = if config.name == "nixpkgs"
               then config.args // {
-                overlays = config'.ci.pkgs.overlays ++ config.args.overlays or [];
+                overlays = config'.ci.pkgs.overlays ++ config.args.overlays or []
+                  ++ concatMap (c: c.overlays) (attrValues (filterAttrs (k: _: k != "nixpkgs") config'.ci.env.channels));
                 system = config'.ci.pkgs.system;
                 config = config.args.config or {} // config'.ci.pkgs.config;
               } else config.args;
