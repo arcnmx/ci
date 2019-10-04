@@ -21,9 +21,10 @@
       inherit (input) meta;
     });
   in input.ci.wrapped or wrapped;
-  mkCiCommand = { lib, runCommand }: with lib; makeOverridable ({
+  mkCiCommand = { lib, stdenvNoCC }: with lib; makeOverridable ({
     pname
   , command
+  , stdenv ? stdenvNoCC
   , warn ? false
   , skip ? null
   , cache ? null
@@ -54,9 +55,12 @@
       source $commandPath
     '';
     hostExec' = [ "${drv}/${commandPath}" ];
-    drv = runCommand pname ({
+    drv = stdenv.mkDerivation ({
+      name = pname;
       preferLocalBuild = true;
       allowSubstitutes = true;
+
+      buildCommand = command';
 
       inherit argVars;
       commandHeader = optionalString ciEnv ''
@@ -64,7 +68,7 @@
         source ${config.ci.env.packages.test}/${config.ci.env.prefix}/source
         ci_env_impure
       '';
-      passAsFile = [ "command" "commandHeader" ] ++ args.passAsFile or [];
+      passAsFile = [ "buildCommand" "command" "commandHeader" ] ++ args.passAsFile or [];
       inherit command;
 
       meta = {
@@ -84,11 +88,12 @@
     } // optionalAttrs (sha256 != null) {
       outputHashAlgo = "sha256";
       outputHash = sha256;
-    } // args') command';
+    } // args');
   in drv);
 in {
   mkCiWrapper = self.callPackage mkCiWrapper { };
   mkCiCommand = self.callPackage mkCiCommand { };
+  mkCiCommandCC = self.callPackage mkCiCommand { stdenvNoCC = self.stdenv; };
   # passthru.ci.skip = true; # do not test
   # passthru.ci.omit = true; # do not evaluate
   # passthru.ci.cache = drv: [ drv ]; # inputs to cache for a given drv
