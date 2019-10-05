@@ -1,14 +1,52 @@
 jobs:
-  check:
-    name: check
+  ci:
+    env:
+      CI_ALLOW_ROOT: '1'
+      CI_CLOSE_STDIN: '1'
+      CI_PLATFORM: gh-actions
+    name: tests-cache
     runs-on: ubuntu-latest
     steps:
-    - id: ci-clone
+    - id: checkout
       name: git clone
       uses: actions/checkout@v1
       with:
         submodules: true
-    - id: ci-nix-install
+    - id: nix-install
+      name: nix install
+      uses: ./actions/nix/install
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-setup
+      name: nix setup
+      uses: ./actions/nix/run
+      with:
+        attrs: ci.run.setup
+        options: --arg config ./tests/cache.nix
+        quiet: false
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: ./actions/nix/run
+      with:
+        attrs: ci.run.test
+        options: --arg config ./tests/cache.nix
+        quiet: false
+  ci-check:
+    env:
+      CI_ALLOW_ROOT: '1'
+      CI_CLOSE_STDIN: '1'
+      CI_PLATFORM: gh-actions
+    name: tests-cache check
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
       name: nix install
       uses: ./actions/nix/install
     - id: ci-action-build
@@ -25,37 +63,6 @@ jobs:
         args: -u .github/workflows/tests-cache.yml .ci/workflow.yml
         attrs: nixpkgs.diffutils
         command: diff
-  ci:
-    env:
-      CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
-    name: tests-cache
-    runs-on: ubuntu-latest
-    steps:
-    - id: ci-clone
-      name: git clone
-      uses: actions/checkout@v1
-      with:
-        submodules: true
-    - id: ci-nix-install
-      name: nix install
-      uses: ./actions/nix/install
-    - id: ci-setup
-      name: nix build ci-env
-      uses: ./actions/internal/ci-setup
-      with:
-        configPath: ./tests/cache.nix
-        prefix: ci
-        stage: ''
-    - id: ci-build
-      name: nix test
-      uses: ./actions/internal/ci-build
-      with:
-        configPath: ./tests/cache.nix
-        prefix: ci
-        stage: ''
 name: tests-cache
 'on':
 - push

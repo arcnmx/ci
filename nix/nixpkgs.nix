@@ -1,7 +1,7 @@
 { config, lib, pkgs, modulesPath, ... }: with lib; {
   options.nixpkgs = {
     config = mkOption {
-      type = types.attrs;
+      type = types.attrsOf types.unspecified;
       example = { allowBroken = true; };
     };
 

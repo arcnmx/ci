@@ -25,12 +25,12 @@ in {
       type = types.str;
     };
     pathFor = mkOption {
-      type = types.attrs;
+      type = types.attrsOf types.unspecified;
       internal = true;
     };
   };
   config.ci.pkgs = {
-    overlays = [ (import ./lib/overlay.nix { inherit config; }) ];
+    overlays = [ (import ./overlay.nix) (import ./lib/overlay.nix { inherit config; }) ];
     config = {
       checkMetaRecursively = true;
     };

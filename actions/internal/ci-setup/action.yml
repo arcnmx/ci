@@ -6,7 +6,8 @@ description: Internal CI action
 inputs:
   stage:
     description: ""
-    required: true
+  job:
+    description: ""
   configPath:
     description: ""
     required: true

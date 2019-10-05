@@ -1,7 +1,7 @@
 { pkgs, config, lib, ... }: with lib; let
-  inherit (config.ci.env.bootstrap) pkgs;
-  executor = config.ci.project.executor.drv;
-  warn = config.ci.warn;
+  inherit (config.bootstrap) pkgs;
+  executor = config.project.executor.drv;
+  warn = config.warn;
   flattenInputs = inputs:
     if inputs ? ci.inputs then flattenInputs inputs.ci.inputs
     #else if isDerivation inputs && inputs.ci.omit or false != false then [ ]
@@ -13,6 +13,7 @@
     !(drv.meta.broken or false) && (drv.ci.skip or false) == false && (drv.ci.omit or false) == false && drv.meta.available or true;
   mapInput = cache: input: if ! cache.enable then input.overrideAttrs (old: {
     passthru = old.passthru or {} // {
+      allowSubstitutes = false; # this needs to be part of the derivation doesn't it :(
       ci = old.passthru.ci or {} // {
         cache.enable = false;
       };
@@ -20,10 +21,10 @@
   }) else if cache.wrap || input.ci.cache.wrap or false == true then input.overrideAttrs (old: {
     passthru = old.passthru or {} // {
       ci = old.passthru.ci or {} // {
-        inputs = old.passthru.ci.inputs or [] ++ [ (pkgs.mkCiWrapper input) ];
+        inputs = old.passthru.ci.inputs or [] ++ [ (pkgs.ci.wrapper input) ];
         cache = {
           enable = true;
-          inputs = [ (pkgs.mkCiWrapper input) ];
+          inputs = [ (pkgs.ci.wrapper input) ];
         };
       };
     };
@@ -125,7 +126,7 @@
         valid = partitioned.right;
         tests = concatMap (d: map (mapTest d) d.ci.tests or []) config.internal.inputs.valid;
         impure = partitioned'impure.right;
-        wrapped = map pkgs.mkCiWrapper partitioned'impure.wrong;
+        wrapped = map pkgs.ci.wrapper partitioned'impure.wrong;
         wrappedImpure = map executor.ci.executor.for config.internal.inputs.impure;
         # TODO: possibly want to be able to filter out warn'd inputs so task can still run when they fail?
       };
@@ -161,7 +162,7 @@
     };
   });
 in {
-  options.ci.project = {
+  options.project = {
     executor = {
       connectionDetails = mkOption {
         type = types.attrsOf types.unspecified;
@@ -178,11 +179,11 @@ in {
       default = { };
     };
   };
-  config.ci.project.executor = {
+  config.project.executor = {
     drv = let
-      commands = concatLists (mapAttrsToList (_: t: t.internal.inputs.impure) config.ci.project.tasks);
+      commands = concatLists (mapAttrsToList (_: t: t.internal.inputs.impure) config.project.tasks);
     in mkOptionDefault (if commands == [] then null else config.lib.ci.execSsh {
-      inherit (config.ci.project.executor) connectionDetails;
+      inherit (config.project.executor) connectionDetails;
       inherit commands;
     });
     connectionDetails = mapAttrs (_: mkOptionDefault) {

@@ -1,9 +1,9 @@
 { pkgs, lib, config, configPath, ... }: with lib; with config.lib.ci; let
-  inherit (config.ci.env.bootstrap.packages) ci-query ci-dirty nix;
-  cfg = config.ci.exec;
-  tasks = mapAttrs (_: { drv, ... }: drv) config.ci.project.tasks;
+  inherit (config.bootstrap.packages) ci-query ci-dirty nix;
+  cfg = config.exec;
+  tasks = mapAttrs (_: { drv, ... }: drv) config.project.tasks;
 in {
-  options.ci.exec = {
+  options.exec = {
     useNix2 = mkOption {
       # 2.3 introduced --print-build-logs, and was unsuitable for CI prior to that
       type = types.bool;
@@ -14,16 +14,8 @@ in {
       type = types.enum [ "build" "quiet" "silent" ];
       default = "build";
     };
-    op = mkOption {
-      type = types.attrs;
-      internal = true;
-    };
-    colours = mkOption {
-      type = types.attrs;
-      internal = true;
-    };
   };
-  options.ci.export = {
+  options.export = {
     environment = mkOption {
       type = types.package;
     };
@@ -44,7 +36,7 @@ in {
     };
   };
 
-  config.ci.exec = {
+  config.lib.ci = {
     colours = {
       red = ''$'\e[31m''\''';
       green = ''$'\e[32m''\''';
@@ -61,42 +53,96 @@ in {
         else "${nix}/bin/nix-store ${optionalString (cfg.verbosity != "build") "-Q"} -r";
       query = drvImports: "${ci-query}/bin/ci-query -f ${drvImports}";
       dirty = "${ci-dirty}/bin/ci-dirty";
-      realise = drvs: "${cfg.op.nixRealise} ${toString drvs}"; # --keep-going
+      realise = drvs: "${config.lib.ci.op.nixRealise} ${toString drvs}"; # --keep-going
       filter = drvImports:
-        cfg.op.query drvImports
-        + " | ${cfg.op.dirty}";
+        config.lib.ci.op.query drvImports
+        + " | ${config.lib.ci.op.dirty}";
       filterNoisy = drvImports:
-        cfg.op.query drvImports
-        + logpipe "${cfg.colours.magenta}::::: Dirty Derivations ::::: ${cfg.colours.green}"
-        + " | ${cfg.op.dirty} -v"
-        + logpipe "${cfg.colours.magenta}::::::::::::::::::::::::::::: ${cfg.colours.clear}";
-      buildDirty = drvImports: cfg.op.realise "$(cat <(${cfg.op.filter drvImports}))";
-      build = drvs: cfg.op.realise (map drvOf drvs);
+        config.lib.ci.op.query drvImports
+        + logpipe "${config.lib.ci.colours.magenta}::::: Dirty Derivations ::::: ${config.lib.ci.colours.green}"
+        + " | ${config.lib.ci.op.dirty} -v"
+        + logpipe "${config.lib.ci.colours.magenta}::::::::::::::::::::::::::::: ${config.lib.ci.colours.clear}";
+      buildDirty = drvImports: config.lib.ci.op.realise "$(cat <(${config.lib.ci.op.filter drvImports}))";
+      build = drvs: config.lib.ci.op.realise (map drvOf drvs);
       sourceOps = ''
         function opFilter {
-          ${cfg.op.filter "$1"}
+          ${config.lib.ci.op.filter "$1"}
         }
         function opFilterNoisy {
-          ${cfg.op.filterNoisy "$1"}
+          ${config.lib.ci.op.filterNoisy "$1"}
         }
 
         function opRealise {
-          if [[ "${cfg.op.realise ""}" = *nix-build* ]]; then
-            ${cfg.op.realise ''"$@"''} > /dev/null # we don't want it to spit out paths
+          if [[ "${config.lib.ci.op.realise ""}" = *nix-build* ]]; then
+            ${config.lib.ci.op.realise ''"$@"''} > /dev/null # we don't want it to spit out paths
           else
-            ${cfg.op.realise ''"$@"''}
+            ${config.lib.ci.op.realise ''"$@"''}
           fi
         }
       '';
     };
-  };
+    nixRunner = binName: config.bootstrap.pkgs.stdenvNoCC.mkDerivation {
+      preferLocalBuild = true;
+      allowSubstitutes = false;
+      name = "nix-run-wrapper-${binName}";
+      defaultCommand = "bash"; # `nix run` execvp's bash by default
+      inherit binName;
+      inherit (config.bootstrap) runtimeShell;
+      passAsFile = [ "buildCommand" "script" ];
+      buildCommand = ''
+        mkdir -p $out/bin
+        substituteAll $scriptPath $out/bin/$defaultCommand
+        chmod +x $out/bin/$defaultCommand
+      '';
+      script = ''
+        #!@runtimeShell@
+        set -eu
 
-  config.lib.ci = {
+        if [[ -n ''${CI_NO_RUN-} ]]; then
+          # escape hatch
+          exec bash "$@"
+        fi
+
+        # also bail out if we're not called via `nix run`
+        #PPID=($(@ps@/bin/ps -o ppid= $$))
+        #if [[ $(readlink /proc/$PPID/exe) = */nix ]]; then
+        #  exec bash "$@"
+        #fi
+
+        IFS=: PATHS=($PATH)
+        join_path() {
+          local IFS=:
+          echo "$*"
+        }
+
+        # remove us from PATH
+        OPATH=()
+        for p in "''${PATHS[@]}"; do
+          if [[ $p != @out@/bin ]]; then
+            OPATH+=("$p")
+          fi
+        done
+        export PATH=$(join_path "''${OPATH[@]}")
+
+        exec @binName@ "$@"
+      '';
+    };
+    nixRunWrapper = binName: package: config.bootstrap.pkgs.stdenvNoCC.mkDerivation {
+      name = "nix-run-${binName}";
+      preferLocalBuild = true;
+      allowSubstitutes = false;
+      wrapper = config.lib.ci.nixRunner binName;
+      inherit package;
+      buildCommand = ''
+        mkdir -p $out/nix-support
+        echo $package $wrapper > $out/nix-support/propagated-user-env-packages
+      '';
+    };
     drvOf = drv: builtins.unsafeDiscardStringContext drv.drvPath;
     buildDrvs = drvs: "${nix}/bin/nix-build --no-out-link ${builtins.concatStringsSep " " (map drvOf drvs)}";
     buildDrv = drv: buildDrvs [drv];
     logpipe = msg: " | (cat && echo ${msg} >&2)";
-    #logpipe = msg: " | (${config.ci.env.bootstrap.packages.coreutils}/bin/tee >(cat >&2) && echo ${msg} >&2)";
+    #logpipe = msg: " | (${config.bootstrap.packages.coreutils}/bin/tee >(cat >&2) && echo ${msg} >&2)";
     drvImports = drvs: builtins.toFile "drvs.nix" ''[
       ${builtins.concatStringsSep "\n" (map (d: "(import ${drvOf d})") drvs)}
     ]'';
@@ -107,8 +153,8 @@ in {
     taskDrvs = builtins.attrValues tasks;
     taskDrvImports = drvImports taskDrvs;
     buildTask = task: let
-      drv = if builtins.isString task then config.ci.project.tasks.${task} else task;
-    in cfg.op.build [drv.drv];
+      drv = if builtins.isString task then config.project.tasks.${task} else task;
+    in config.lib.ci.op.build [drv.drv];
     toNix = val: with builtins; # honestly why not just use from/to json?
       if isString val then ''"${val}"''
       else if builtins ? isPath && builtins.isPath val then ''${toString val}''
@@ -125,12 +171,12 @@ in {
       buildInputs = throw "cache.buildInputs unimplemented";
       default = ! isFunction drv.ci.cache or null;
       # TODO: do this recursively over all inputs?
-    in optional (drv.ci.cache.enable or default) drv
+    in optional (drv.ci.cache.enable or default && drv.allowSubstitutes or true) drv
       ++ optionals (drv.ci.cache.buildInputs or false) buildInputs # TODO: make this true by default?
       ++ optionals (isFunction drv.ci.cache or null) (drv.ci.cache drv)
       ++ concatMap cacheInputsOf (drv.ci.cache.inputs or []);
     commandExecutor = {
-      stdenv ? config.ci.env.bootstrap.pkgs.stdenvNoCC
+      stdenv ? config.bootstrap.pkgs.stdenvNoCC
     , drv
     , executor
     }: let
@@ -163,49 +209,57 @@ in {
     inherit (import ./lib/build { inherit lib config; }) buildScriptFor;
   };
 
-  config.ci.export = {
-    environment = config.ci.env.packages.bootstrap;
+  config.export = {
+    environment = config.export.env.bootstrap;
     source = ''
-      CI_ENV=${config.ci.env.packages.test}
+      CI_ENV=${config.export.env.test}
 
       function ci_refresh() {
         local CONFIG_ARGS=(--arg configuration '${toNix configPath}')
         if [[ $# -gt 0 ]]; then
           CONFIG_ARGS=(--argstr configuration "$1")
         fi
-        eval "$(${config.ci.env.bootstrap.packages.nix}/bin/nix eval --show-trace --raw source -f ${toString ./.} "''${CONFIG_ARGS[@]}")"
+        eval "$(${config.bootstrap.packages.nix}/bin/nix eval --show-trace --raw source -f ${toString ./.} "''${CONFIG_ARGS[@]}")"
       }
 
       ${builtins.concatStringsSep "\n" (mapAttrsToList (name: eval: ''
         function ci_${name} {
           ${eval} "$@"
         }
-      '') config.ci.export.exec)}
+      '') config.export.exec)}
     '';
     shell = pkgs.mkShell {
-      nativeBuildInputs = [ config.ci.env.packages.test ] ++
-        attrValues config.ci.env.environment.shell;
+      nativeBuildInputs = [ config.export.env.test ] ++
+        attrValues config.export.env.shell;
 
       shellHook = ''
-        eval "${config.ci.export.source}"
-        source ${config.ci.env.packages.test}/${config.ci.env.prefix}/env
+        eval "${config.export.source}"
+        source ${config.export.env.test}/${global.prefix}/env
         ci_env_impure
       '';
     };
-    test = buildScriptFor config.ci.project.tasks // {
-      # TODO: turn this into a megatask using host-exec so it can all run in parallel? sshd ports though :(
-      all = config.ci.env.bootstrap.pkgs.writeShellScriptBin "ci-build" ''
-        set -eu
-        ${config.ci.export.test}/bin/ci-build
-        ${concatStringsSep "\n" (mapAttrsToList (k: v: "echo testing ${k} ... >&2 && ${v.test}/bin/ci-build") config.ci.export.stage)}
-      '';
-    } // mapAttrs (name: task: buildScriptFor { ${name} = task; }) config.ci.project.tasks;
+    inherit (config.export.run) test;
+    run = {
+      setup = config.lib.ci.nixRunWrapper "ci-setup" config.export.env.setup;
+      bootstrap = config.lib.ci.nixRunWrapper "ci-setup" config.export.env.bootstrap;
+      run = config.lib.ci.nixRunWrapper "ci-run" config.export.env.bootstrap;
+    } // {
+      test = config.lib.ci.nixRunWrapper "ci-build" (buildScriptFor config.project.tasks) // {
+        # TODO: turn this into a megatask using host-exec so it can all run in parallel? sshd ports though :(
+        all = config.lib.ci.nixRunWrapper "ci-build" (config.bootstrap.pkgs.writeShellScriptBin "ci-build" ''
+          set -eu
+          ${config.export.test}/bin/ci-build
+          ${concatStringsSep "\n" (mapAttrsToList (k: v: "echo testing ${k} ... >&2 && ${v.test}/bin/ci-build") config.export.job)}
+          ${concatStringsSep "\n" (mapAttrsToList (k: v: "echo testing ${k} ... >&2 && ${v.test}/bin/ci-build") config.export.stage)}
+        '');
+      } // mapAttrs (name: task: config.lib.ci.nixRunWrapper "ci-build" (buildScriptFor { ${name} = task; })) config.project.tasks;
+    };
     exec = {
-      shell = ''${buildAndRun [config.ci.env.packages.shell]} -c ci-shell'';
-      dirty = buildAnd [ci-query ci-dirty] (cfg.op.filterNoisy taskDrvImports);
-      build = buildAnd [ci-query ci-dirty] (cfg.op.buildDirty taskDrvImports);
-      buildAll = cfg.op.build taskDrvs;
-    } // mapAttrs' (name: value: nameValuePair "task_${name}" (buildTask value)) config.ci.project.tasks
-      // config.ci.project.exec;
+      shell = ''${buildAndRun [config.export.env.shell]} -c ci-shell'';
+      dirty = buildAnd [ci-query ci-dirty] (config.lib.ci.op.filterNoisy taskDrvImports);
+      build = buildAnd [ci-query ci-dirty] (config.lib.ci.op.buildDirty taskDrvImports);
+      buildAll = config.lib.ci.op.build taskDrvs;
+    } // mapAttrs' (name: value: nameValuePair "task_${name}" (buildTask value)) config.project.tasks
+      // config.project.exec;
   };
 }

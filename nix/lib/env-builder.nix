@@ -1,19 +1,18 @@
 { lib, runCommandNoCC, hostPlatform, cacert, config }: with lib; let
-  cfg = config.ci.env;
   glibcLocales = listToAttrs (map (glibc:
     lib.nameValuePair (replaceStrings [ "." ] [ "_" ] glibc.version) "${glibc}/lib/locale/locale-archive"
-  ) (cfg.glibcLocales or [ ]));
+  ) (config.environment.glibcLocales or [ ]));
 in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }@args: runCommandNoCC pname ({
   inherit cacert;
-  inherit (cfg) prefix;
-  inherit (cfg.bootstrap) runtimeShell;
-  inherit (cfg.bootstrap.packages) nix;
+  inherit (import ../global.nix) prefix;
+  inherit (config.bootstrap) runtimeShell;
+  inherit (config.bootstrap.packages) nix;
 
   passAsFile = [ "source" "env" "rc" "shellBin" ] ++ passAsFile;
 
   packages = map getBin packages;
   ciRoot = toString ../..;
-  nixPathStr = builtins.concatStringsSep ":" (builtins.attrValues (builtins.mapAttrs (k: v: "${k}=${v}") cfg.nixPath));
+  nixPathStr = builtins.concatStringsSep ":" (builtins.attrValues (builtins.mapAttrs (k: v: "${k}=${v}") config.nixPath));
   glibcLocaleVars = optionals hostPlatform.isLinux (mapAttrsToList (name: path:
     "LOCALE_ARCHIVE_${name}=${path}"
   ) glibcLocales);
@@ -36,7 +35,7 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
       # non-interactive shells should bail on any error
       set -euo pipefail
     fi
-    ${optionalString cfg.bootstrap.closeStdin "exec 0<&-"}
+    ${optionalString config.environment.closeStdin "exec 0<&-"}
 
     export NIX_PATH=@nixPathStr@
     export NIX_PREFIX=@nix@
@@ -53,7 +52,7 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
   source = ''
     source @out@/@prefix@/env
 
-    ci_env_nix
+    ci_env_impure
   '';
 
   rc = ''

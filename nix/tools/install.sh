@@ -53,6 +53,9 @@ if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
   export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$($NIX_PATH_DIR/nix eval --raw -f "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
 fi
 
+# set up a default config
+cat $($NIX_PATH_DIR/nix eval --raw --arg config ./tests/empty.nix ci.config.nix.configFile) >> /etc/nix/nix.conf
+
 case "${CI_PLATFORM-}" in
   gh-actions)
     echo "::set-output name=version::$NIX_VERSION"

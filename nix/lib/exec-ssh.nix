@@ -1,5 +1,5 @@
 { lib, config }: with lib; let
-  inherit (config.ci.env.bootstrap) pkgs;
+  inherit (config.bootstrap) pkgs;
   sshExecutor = {
     executor
   }: let
@@ -8,7 +8,7 @@
       nativeBuildInputs = with pkgs; [ openssh ];
       passAsFile = [ "privateKey" ];
       inherit executor;
-      inherit (config.ci.env) prefix;
+      inherit (import ../global.nix) prefix;
       inherit (executor.ci.connectionDetails) port address user;
     };
 
@@ -36,7 +36,7 @@ in {
       nameValuePair (config.lib.ci.drvOf drv) (map builtins.unsafeDiscardStringContext drv.ci.exec)
     ) commands);
     drv = pkgs.stdenvNoCC.mkDerivation {
-      inherit (config.ci.env) prefix;
+      inherit (import ../global.nix) prefix;
 
       passAsFile = [ "authorizedKeys" "sshdScript" "sshdConfig" "commandsExec" ];
 
@@ -59,8 +59,8 @@ in {
       '';
 
       inherit (pkgs) openssh;
-      inherit (config.ci.env.bootstrap.packages) coreutils;
-      inherit (config.ci.env.bootstrap) runtimeShell;
+      inherit (config.bootstrap.packages) coreutils;
+      inherit (config.bootstrap) runtimeShell;
       sshdScript = ''
         #!@runtimeShell@
         HOST_KEY=$(@coreutils@/bin/mktemp)

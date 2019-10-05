@@ -1,6 +1,6 @@
 { lib, config }: with lib; with config.lib.ci; let
   scriptData = tasks: let
-    executor = config.ci.project.executor.drv;
+    executor = config.project.executor.drv;
     drvOf = drv: let
       ph = "${builtins.placeholder drv.name}-${drv.name}";
       drvPath = builtins.tryEval (config.lib.ci.drvOf drv);
@@ -21,7 +21,7 @@
     in concatMapStringsSep " " cachePaths inputs;
   in {
     # TODO: error on multiple caches
-    ${if config.ci.env.cache.cachix != { } then "CACHIX_CACHE" else null} = (head (attrValues config.ci.env.cache.cachix)).name;
+    ${if config.cache.cachix != { } then "CACHIX_CACHE" else null} = (head (attrValues config.cache.cachix)).name;
     # structured input data for buildScript
     drvs = map drvOf drvs;
     drvExecutor = if executor == null then "" else executor.exec;
@@ -41,21 +41,21 @@
     drvName = drvAttrs (drv: drv.meta.name or drv.name) (drvs ++ drvsSkipped);
   };
   # TODO: manual derivation rather than using stdenv?
-  buildScriptFor = tasks: config.ci.env.bootstrap.pkgs.runCommandNoCC config.ci.project.name ({
+  buildScriptFor = tasks: config.bootstrap.pkgs.runCommandNoCC config.name ({
     __structuredAttrs = true;
-    attrsPath = "${placeholder "out"}/${config.ci.env.prefix}/attrs.sh";
+    attrsPath = "${placeholder "out"}/${(import ../../global.nix).prefix}/attrs.sh";
     preferLocalBuild = true;
     allowSubstitutes = false;
-    builder = config.ci.env.bootstrap.pkgs.writeScript "ci-build.sh" ''
-      #!${config.ci.env.bootstrap.runtimeShell}
+    builder = config.bootstrap.pkgs.writeScript "ci-build.sh" ''
+      #!${config.bootstrap.runtimeShell}
       source .attrs.sh
 
-      ${config.ci.env.bootstrap.packages.coreutils}/bin/cat > ci-build <<EOF
-        #!${config.ci.env.bootstrap.runtimeShell}
-        exec ${config.ci.env.bootstrap.packages.ci-build} $attrsPath "\$@"
+      ${config.bootstrap.packages.coreutils}/bin/cat > ci-build <<EOF
+        #!${config.bootstrap.runtimeShell}
+        exec ${config.bootstrap.packages.ci-build} $attrsPath "\$@"
       EOF
-      ${config.ci.env.bootstrap.packages.coreutils}/bin/install -Dm0755 -t ''${outputs[out]}/bin ci-build
-      ${config.ci.env.bootstrap.packages.coreutils}/bin/install -D .attrs.sh $attrsPath
+      ${config.bootstrap.packages.coreutils}/bin/install -Dm0755 -t ''${outputs[out]}/bin ci-build
+      ${config.bootstrap.packages.coreutils}/bin/install -D .attrs.sh $attrsPath
     '';
   } // scriptData tasks) "";
 in {

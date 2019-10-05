@@ -68,15 +68,19 @@
         else "${config.slug}${optionalString (config.path != null) "/${config.path}"}@${config.version}");
     };
   });
-  stepType = types.submodule ({ config, ... }: {
+  stepType = { isList }: types.submodule ({ name, config, ... }: {
     options = {
       id = mkOption {
         type = types.nullOr types.str;
-        default = null;
+        default = if isList then null else name;
       };
       name = mkOption {
         type = types.nullOr types.str;
         default = null;
+      };
+      order = mkOption {
+        type = types.int;
+        default = 1000;
       };
       "if" = mkOption {
         type = types.nullOr types.str;
@@ -98,7 +102,7 @@
       "with" = mkOption {
         # TODO: abstract this away into an action option type
         # TODO: with.entrypoint and with.args are special?
-        type = types.attrs;
+        type = types.attrsOf types.unspecified;
         default = { };
       };
       env = mkOption {
@@ -124,7 +128,16 @@
       };
     };
   });
-  jobType = types.submodule ({ name, config, ... }: {
+  jobType = types.submodule ({ name, config, ... }: let
+    sortedSteps = steps: foldl' (list: step: let
+      prev = if list == [] then { order = 1000; } else last list;
+      order = /*if prev.id or null != null
+        then config.step.${prev.id}.order
+        else*/ prev.order;
+    in list ++ singleton ({
+      order = mkDefault (order + 10);
+    } // step)) [] steps;
+  in {
     options = {
       id = mkOption {
         type = types.str;
@@ -158,8 +171,12 @@
         default = null;
       };
       steps = mkOption {
-        type = types.listOf stepType;
+        type = types.listOf (stepType { isList = true; });
         default = [ ];
+      };
+      step = mkOption {
+        type = types.attrsOf (stepType { isList = false; });
+        default = { };
       };
       timeout-minutes = mkOption {
         type = types.int;
@@ -168,7 +185,7 @@
       strategy = {
         # TODO: complicated!
         matrix = mkOption {
-          type = types.attrs;
+          type = types.attrsOf types.unspecified;
           default = { };
         };
         fail-fast = mkOption {
@@ -189,6 +206,12 @@
         default = { };
       };
     };
+
+    config.step = let
+      steps = sortedSteps config.steps;
+    in foldl' (steps: s: steps // {
+      ${if s.id or null != null then s.id else "step${toString (length (attrNames steps))}"} = s;
+    }) { } steps;
   });
 in {
   options.gh-actions = {
@@ -229,7 +252,7 @@ in {
             inherit (s) id name "if" run shell "with" env working-directory timeout-minutes shellTemplate;
             ${if s.uses != null then "uses" else null} = s.uses.spec;
             ${if s.continue-on-error then "continue-on-error" else null} = s.continue-on-error;
-          }) j.steps;
+          }) (sort (l: r: l.order < r.order) (attrValues j.step));
         } // optionalAttrs (j.strategy.matrix != { }) {
           matrix = filterEmpty {
             inherit (j.strategy) matrix max-parallel;

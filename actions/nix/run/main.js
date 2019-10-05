@@ -44,14 +44,14 @@ if (stdout_path === '') {
 
 const args = [
   'run',
-].concat(quiet ? [] : ['-L'])
+].concat(quiet ? [] : ['-L', '--show-trace'])
   .concat(file !== '' ? ['-f', file] : [])
   .concat(attrs);
 
 const builder = spawn('nix', args
   .concat(nix_path.map(p => ['-I', p]).flat())
   .concat(options)
-  .concat(['-c', command])
+  .concat(command !== '' ? ['-c', command] : [])
   .concat(cargs), {
   env: Object.assign({}, process.env, {
     CI_PLATFORM: 'gh-actions',

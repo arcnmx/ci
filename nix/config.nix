@@ -14,11 +14,13 @@ in {
       type = types.str;
       # TODO: check for config.ci.env.impure first?
       default = let
+        root = builtins.getEnv "CI_CONFIG_ROOT";
         pwd = builtins.getEnv "PWD";
+        configRoot = if root != "" then root else pwd;
         path = toString configPath;
-      in if pwd != "" && hasPrefix pwd path
-        then "." + builtins.unsafeDiscardStringContext (removePrefix pwd path)
-        else "./ci.nix";
+      in if configRoot != "" && hasPrefix configRoot path
+        then "." + removePrefix configRoot path
+        else (import ./global.nix).defaultConfigPath;
     };
   };
 }

@@ -1,14 +1,18 @@
 jobs:
-  check:
-    name: check
+  ci-check:
+    env:
+      CI_ALLOW_ROOT: '1'
+      CI_CLOSE_STDIN: '1'
+      CI_PLATFORM: gh-actions
+    name: tests-tasks check
     runs-on: ubuntu-latest
     steps:
-    - id: ci-clone
+    - id: checkout
       name: git clone
       uses: actions/checkout@v1
       with:
         submodules: true
-    - id: ci-nix-install
+    - id: nix-install
       name: nix install
       uses: ./actions/nix/install
     - id: ci-action-build
@@ -27,66 +31,72 @@ jobs:
         command: diff
   linux:
     env:
-      CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
       CI_ALLOW_ROOT: '1'
       CI_CLOSE_STDIN: '1'
       CI_PLATFORM: gh-actions
-    name: linux
+    name: tests-tasks-linux
     runs-on: ubuntu-latest
     steps:
-    - id: ci-clone
+    - id: checkout
       name: git clone
       uses: actions/checkout@v1
       with:
         submodules: true
-    - id: ci-nix-install
+    - id: nix-install
       name: nix install
       uses: ./actions/nix/install
-    - id: ci-setup
-      name: nix build ci-env
-      uses: ./actions/internal/ci-setup
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-setup
+      name: nix setup
+      uses: ./actions/nix/run
       with:
-        configPath: ./tests/tasks.nix
-        prefix: ci
-        stage: linux
-    - id: ci-build
+        attrs: ci.job.linux.run.setup
+        options: --arg config ./tests/tasks.nix
+        quiet: false
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
       name: nix test
-      uses: ./actions/internal/ci-build
+      uses: ./actions/nix/run
       with:
-        configPath: ./tests/tasks.nix
-        prefix: ci
-        stage: linux
+        attrs: ci.job.linux.run.test
+        options: --arg config ./tests/tasks.nix
+        quiet: false
   mac:
     env:
-      CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
       CI_ALLOW_ROOT: '1'
       CI_CLOSE_STDIN: '1'
       CI_PLATFORM: gh-actions
-    name: mac
+    name: tests-tasks-mac
     runs-on: macOS-latest
     steps:
-    - id: ci-clone
+    - id: checkout
       name: git clone
       uses: actions/checkout@v1
       with:
         submodules: true
-    - id: ci-nix-install
+    - id: nix-install
       name: nix install
       uses: ./actions/nix/install
-    - id: ci-setup
-      name: nix build ci-env
-      uses: ./actions/internal/ci-setup
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-setup
+      name: nix setup
+      uses: ./actions/nix/run
       with:
-        configPath: ./tests/tasks.nix
-        prefix: ci
-        stage: mac
-    - id: ci-build
+        attrs: ci.job.mac.run.setup
+        options: --arg config ./tests/tasks.nix
+        quiet: false
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
       name: nix test
-      uses: ./actions/internal/ci-build
+      uses: ./actions/nix/run
       with:
-        configPath: ./tests/tasks.nix
-        prefix: ci
-        stage: mac
+        attrs: ci.job.mac.run.test
+        options: --arg config ./tests/tasks.nix
+        quiet: false
 name: tests-tasks
 'on':
 - push

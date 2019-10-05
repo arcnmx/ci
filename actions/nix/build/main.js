@@ -38,7 +38,7 @@ if (nix2) {
   args = [
     'build',
   ].concat(file !== '' ? ['-f', file] : [])
-    .concat(quiet ? [] : ['-L'])
+    .concat(quiet ? [] : ['-L', '--show-trace'])
     .concat(attrs);
 } else {
   arg0 = 'nix-build';

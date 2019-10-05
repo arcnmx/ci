@@ -11,17 +11,15 @@ fi
 
 # set up a known path where our environment goes
 export CI_ENV=$PWD/result
-CI_CONFIG=./ci.nix
+export NIX_PATH="ci=${CI_ROOT-$PWD/../}"
+export CI_CONFIG=./ci.nix
 
-# build the base/bootstrap environment
-# just core dependencies, CI helper scripts, cachix, pinned to a stable nixpkgs
-bash -lc "nix run -Lf ../ environment --arg config $CI_CONFIG -c ci-setup"
-
-# setup replaces CI_ENV with final environment
+# build the base/bootstrap environment and replace CI_ENV with final environment
 # this step installs dependencies from channels, can use additional caches, etc.
-export BASH_ENV=$CI_ENV/ci/source
+bash -lc "nix run -L ci.run.bootstrap"
 
 # environment ready to go at this point
+export BASH_ENV=$CI_ENV/ci/source
 bash -c "crex --help | lolcat"
 
 set +x

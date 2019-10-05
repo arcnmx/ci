@@ -7,12 +7,13 @@ const ci_path = path.join(__dirname, '../../..');
 const ci_env = '/nix/var/ci-source';
 
 const stage = core.getInput('stage');
+const job = core.getInput('job');
 const stage_prefix = stage === '' ? '' : `stage.${stage}.`;
+const job_prefix = job === '' ? '' : `job.${job}.`;
 
 const nix = spawn('nix', [
   '--show-trace', '-L',
-  'run', '-f', ci_path,
-  `${stage_prefix}environment`,
+  'run', `ci.${stage_prefix}${job_prefix}run.bootstrap`,
   '--arg', 'config', core.getInput('configPath'),
   '-c', 'ci-setup',
 ], {

@@ -1,0 +1,5 @@
+if ! use nix; then
+  export CI_ROOT=$PWD
+  export CI_CONFIG_ROOT=$PWD
+  export NIX_PATH=ci=$CI_ROOT:$NIX_PATH
+fi

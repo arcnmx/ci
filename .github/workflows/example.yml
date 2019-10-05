@@ -1,14 +1,54 @@
 jobs:
-  check:
-    name: check
+  ci:
+    env:
+      CI_ALLOW_ROOT: '1'
+      CI_CLOSE_STDIN: '1'
+      CI_PLATFORM: gh-actions
+    name: example
     runs-on: ubuntu-latest
     steps:
-    - id: ci-clone
+    - id: checkout
       name: git clone
       uses: actions/checkout@v1
       with:
         submodules: true
-    - id: ci-nix-install
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-setup
+      name: nix setup
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.bootstrap
+        options: --arg config ./examples/ci.nix
+        quiet: false
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.test
+        options: --arg config ./examples/ci.nix
+        quiet: false
+    - id: crex
+      run: crex --help | lolcat
+  ci-check:
+    env:
+      CI_ALLOW_ROOT: '1'
+      CI_CLOSE_STDIN: '1'
+      CI_PLATFORM: gh-actions
+    name: example check
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
       name: nix install
       uses: arcnmx/ci/actions/nix/install@modules
     - id: ci-action-build
@@ -25,38 +65,6 @@ jobs:
         args: -u .github/workflows/example.yml .ci/workflow.yml
         attrs: nixpkgs.diffutils
         command: diff
-  ci:
-    env:
-      CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
-    name: example
-    runs-on: ubuntu-latest
-    steps:
-    - id: ci-clone
-      name: git clone
-      uses: actions/checkout@v1
-      with:
-        submodules: true
-    - id: ci-nix-install
-      name: nix install
-      uses: arcnmx/ci/actions/nix/install@modules
-    - id: ci-setup
-      name: nix build ci-env
-      uses: arcnmx/ci/actions/internal/ci-setup@modules
-      with:
-        configPath: ./examples/ci.nix
-        prefix: ci
-        stage: ''
-    - id: ci-build
-      name: nix test
-      uses: arcnmx/ci/actions/internal/ci-build@modules
-      with:
-        configPath: ./examples/ci.nix
-        prefix: ci
-        stage: ''
-    - run: crex --help | lolcat
   script:
     name: example script
     runs-on: ubuntu-latest

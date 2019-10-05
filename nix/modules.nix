@@ -1,35 +1,11 @@
-{ pkgs, lib ? pkgs.lib, nixosModulesPath, check ? true }: with lib; let
+{ pkgs, check ? true }: let
+  libPath = import ./lib/lib.nix;
+  module = { config, lib, ... }: with lib; {
+    imports = [
+      (libPath + "/modules/assertions.nix")
+      (libPath + "/modules/meta.nix")
+    ];
 
-  hostPlatform = pkgs.stdenv.hostPlatform;
-
-  checkPlatform = any (meta.platformMatch pkgs.stdenv.hostPlatform);
-
-  loadModule = file: { condition ? true }: {
-    inherit file condition;
-  };
-
-  allModules = [
-    (loadModule ./env.nix { })
-    (loadModule ./lib.nix { })
-    (loadModule ./exec.nix { })
-    (loadModule ./config.nix { })
-    (loadModule ./cipkgs.nix { })
-    (loadModule ./nixpkgs.nix { })
-    (loadModule ./project.nix { })
-    (loadModule ./tasks.nix { })
-    (loadModule ./actions.nix { })
-    (loadModule ./actions-ci.nix { })
-    (loadModule (nixosModulesPath + "/misc/assertions.nix") { })
-    (loadModule (nixosModulesPath + "/misc/meta.nix") { })
-  ];
-
-  modules = map (getAttr "file") (filter (getAttr "condition") allModules);
-
-  pkgsModule = { config, ... }: {
-    config._module.args = {
-      inherit nixosModulesPath;
-      baseModules = modules;
-    };
     config._module = {
       inherit check;
     };
@@ -40,4 +16,16 @@
       overlays = mkOptionDefault pkgs.overlays;
     };
   };
-in modules ++ [ pkgsModule ]
+in [
+  ./env.nix
+  ./lib.nix
+  ./exec.nix
+  ./config.nix
+  ./cipkgs.nix
+  ./nixpkgs.nix
+  ./project.nix
+  ./tasks.nix
+  ./actions.nix
+  ./actions-ci.nix
+  module
+]
