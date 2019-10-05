@@ -93,6 +93,7 @@ in {
         mkdir -p $out/bin
         substituteAll $scriptPath $out/bin/$defaultCommand
         chmod +x $out/bin/$defaultCommand
+        ln -s $out/bin/$defaultCommand $out/bin/run
       '';
       script = ''
         #!@runtimeShell@
@@ -124,7 +125,7 @@ in {
         done
         export PATH=$(join_path "''${OPATH[@]}")
 
-        exec @binName@ "$@"
+        exec @binName@ "$@" ''${CI_RUN_ARGS-}
       '';
     };
     nixRunWrapper = binName: package: channels.cipkgs.stdenvNoCC.mkDerivation {
