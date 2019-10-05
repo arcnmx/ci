@@ -162,16 +162,18 @@
     };
   });
 in {
-  options.project = {
-    executor = {
-      connectionDetails = mkOption {
-        type = types.attrsOf types.unspecified;
-        default = {
+  options = {
+    project = {
+      executor = {
+        connectionDetails = mkOption {
+          type = types.attrsOf types.unspecified;
+          default = {
+          };
         };
-      };
-      drv = mkOption {
-        type = types.nullOr types.package;
-        internal = true;
+        drv = mkOption {
+          type = types.nullOr types.package;
+          internal = true;
+        };
       };
     };
     tasks = mkOption {
@@ -181,7 +183,7 @@ in {
   };
   config.project.executor = {
     drv = let
-      commands = concatLists (mapAttrsToList (_: t: t.internal.inputs.impure) config.project.tasks);
+      commands = concatLists (mapAttrsToList (_: t: t.internal.inputs.impure) config.tasks);
     in mkOptionDefault (if commands == [] then null else config.lib.ci.execSsh {
       inherit (config.project.executor) connectionDetails;
       inherit commands;

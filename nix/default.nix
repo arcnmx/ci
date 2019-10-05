@@ -9,9 +9,11 @@
   libPath = builtins.import ./lib/lib.nix;
   lib = builtins.import libPath;
 in with lib; let
-  pkgs = if args.pkgs or null == null then
-    builtins.import nixpkgsPath { }
-    else if args.pkgs == true then throw "unimplemented pkgs import" # TODO
+  pkgs'args = { };
+  pkgs'path = builtins.tryEval (import <nixpkgs>);
+  pkgs =
+    if args.pkgs or null == true && pkgs'path.success then pkgs'path.value pkgs'args
+    else if args.pkgs or null == null then builtins.import nixpkgsPath pkgs'args
     else args.pkgs;
   pwd = builtins.getEnv "PWD";
   configPath = if builtins.typeOf configuration == "path" then configuration
@@ -23,14 +25,14 @@ in with lib; let
   showWarnings = res: let
     f = w: x: builtins.trace "warning: ${w}" x;
   in fold f res res.config.warnings;
-  nixosModulesPath = pkgs.path + "/nixos/modules";
+  #nixosModulesPath = pkgs.path + "/nixos/modules";
 
   rawModule = evalModules {
     modules = [ configPath ] ++ (builtins.import ./modules.nix {
       inherit check pkgs;
     });
     specialArgs = {
-      inherit nixosModulesPath libPath;
+      inherit /*nixosModulesPath*/ libPath;
       modulesPath = builtins.toString ./.;
       configPath = toString configPath;
       rootConfigPath = toString configPath;

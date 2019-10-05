@@ -1,7 +1,7 @@
-{ pkgs, lib, config, configPath, ... }: with lib; with config.lib.ci; let
+{ pkgs, channels, lib, config, configPath, ... }: with lib; with config.lib.ci; let
   inherit (config.bootstrap.packages) ci-query ci-dirty nix;
   cfg = config.exec;
-  tasks = mapAttrs (_: { drv, ... }: drv) config.project.tasks;
+  tasks = mapAttrs (_: { drv, ... }: drv) config.tasks;
 in {
   options.exec = {
     useNix2 = mkOption {
@@ -81,7 +81,7 @@ in {
         }
       '';
     };
-    nixRunner = binName: config.bootstrap.pkgs.stdenvNoCC.mkDerivation {
+    nixRunner = binName: channels.cipkgs.stdenvNoCC.mkDerivation {
       preferLocalBuild = true;
       allowSubstitutes = false;
       name = "nix-run-wrapper-${binName}";
@@ -127,7 +127,7 @@ in {
         exec @binName@ "$@"
       '';
     };
-    nixRunWrapper = binName: package: config.bootstrap.pkgs.stdenvNoCC.mkDerivation {
+    nixRunWrapper = binName: package: channels.cipkgs.stdenvNoCC.mkDerivation {
       name = "nix-run-${binName}";
       preferLocalBuild = true;
       allowSubstitutes = false;
@@ -153,7 +153,7 @@ in {
     taskDrvs = builtins.attrValues tasks;
     taskDrvImports = drvImports taskDrvs;
     buildTask = task: let
-      drv = if builtins.isString task then config.project.tasks.${task} else task;
+      drv = if builtins.isString task then config.tasks.${task} else task;
     in config.lib.ci.op.build [drv.drv];
     toNix = val: with builtins; # honestly why not just use from/to json?
       if isString val then ''"${val}"''
@@ -176,7 +176,7 @@ in {
       ++ optionals (isFunction drv.ci.cache or null) (drv.ci.cache drv)
       ++ concatMap cacheInputsOf (drv.ci.cache.inputs or []);
     commandExecutor = {
-      stdenv ? config.bootstrap.pkgs.stdenvNoCC
+      stdenv ? channels.cipkgs.stdenvNoCC
     , drv
     , executor
     }: let
@@ -244,22 +244,22 @@ in {
       bootstrap = config.lib.ci.nixRunWrapper "ci-setup" config.export.env.bootstrap;
       run = config.lib.ci.nixRunWrapper "ci-run" config.export.env.bootstrap;
     } // {
-      test = config.lib.ci.nixRunWrapper "ci-build" (buildScriptFor config.project.tasks) // {
+      test = config.lib.ci.nixRunWrapper "ci-build" (buildScriptFor config.tasks) // {
         # TODO: turn this into a megatask using host-exec so it can all run in parallel? sshd ports though :(
-        all = config.lib.ci.nixRunWrapper "ci-build" (config.bootstrap.pkgs.writeShellScriptBin "ci-build" ''
+        all = config.lib.ci.nixRunWrapper "ci-build" (channels.cipkgs.writeShellScriptBin "ci-build" ''
           set -eu
           ${config.export.test}/bin/ci-build
           ${concatStringsSep "\n" (mapAttrsToList (k: v: "echo testing ${k} ... >&2 && ${v.test}/bin/ci-build") config.export.job)}
           ${concatStringsSep "\n" (mapAttrsToList (k: v: "echo testing ${k} ... >&2 && ${v.test}/bin/ci-build") config.export.stage)}
         '');
-      } // mapAttrs (name: task: config.lib.ci.nixRunWrapper "ci-build" (buildScriptFor { ${name} = task; })) config.project.tasks;
+      } // mapAttrs (name: task: config.lib.ci.nixRunWrapper "ci-build" (buildScriptFor { ${name} = task; })) config.tasks;
     };
     exec = {
       shell = ''${buildAndRun [config.export.env.shell]} -c ci-shell'';
       dirty = buildAnd [ci-query ci-dirty] (config.lib.ci.op.filterNoisy taskDrvImports);
       build = buildAnd [ci-query ci-dirty] (config.lib.ci.op.buildDirty taskDrvImports);
       buildAll = config.lib.ci.op.build taskDrvs;
-    } // mapAttrs' (name: value: nameValuePair "task_${name}" (buildTask value)) config.project.tasks
+    } // mapAttrs' (name: value: nameValuePair "task_${name}" (buildTask value)) config.tasks
       // config.project.exec;
   };
 }

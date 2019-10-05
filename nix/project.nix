@@ -1,9 +1,8 @@
-{ config, lib, nixosModulesPath, modulesPath, configPath, rootConfigPath, ... }: with lib; let
+{ config, lib, modulesPath, configPath, rootConfigPath, ... }: with lib; let
   # NOTE: perhaps submodules are the wrong way to go about this, just use evalModules again
   # (mostly saying this because as far as I can tell, there's no way to pass specialArgs on to submodules? I imagine that could be hacked into lib/ though?)
   submodule = imports: types.submodule {
     imports = imports ++ import ./modules.nix {
-      inherit (config.bootstrap) pkgs;
       inherit (config._module) check;
     };
 

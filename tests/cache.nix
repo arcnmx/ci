@@ -7,7 +7,7 @@
   };
   name = "tests-cache";
   cache.cachix.ci.enable = true;
-  project.tasks.touch.inputs = pkgs.runCommand "touch" {
+  tasks.touch.inputs = pkgs.runCommand "touch" {
     inherit system;
   } ''
     echo $system > $out

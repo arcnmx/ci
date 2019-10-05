@@ -1,4 +1,4 @@
-{ config, lib, configPath, ... }: with lib; let
+{ config, lib, channels, configPath, ... }: with lib; let
   cfg = config.ci.gh-actions;
   action = name: if ! hasPrefix "http" config.ci.url
     then {
@@ -12,7 +12,7 @@
   ciJob = {
     id
   , name ? null
-  , platform ? systems.elaborate { inherit (config.ci.pkgs) system; }
+  , platform ? systems.elaborate config.channels.nixpkgs.args.system
   , step ? { }
   , env ? { }
   }: { ${id} = {
@@ -28,11 +28,7 @@
     runs-on = if platform.isLinux then "ubuntu-latest"
       else if platform.isDarwin then "macOS-latest"
       else throw "unknown GitHub Actions platform for ${platform.system}";
-    env = {
-      CI_ALLOW_ROOT = "1";
-      CI_CLOSE_STDIN = "1"; # TODO: is this necessary on actions or just azure pipelines?
-      CI_PLATFORM = "gh-actions";
-    } // env;
+    inherit env;
     step = step // {
       checkout = {
         order = 10;
@@ -96,6 +92,12 @@ in {
   };
   config.gh-actions = mkIf config.ci.gh-actions.enable {
     enable = true;
+    env = mapAttrs (_: mkDefault) {
+      CI_ALLOW_ROOT = "1";
+      CI_CLOSE_STDIN = "1"; # TODO: is this necessary on actions or just azure pipelines?
+      CI_PLATFORM = "gh-actions";
+      CI_CONFIG = config.ci.configPath;
+    };
     # TODO: on push/pull or on check? what is check?
     name = config.name;
     jobs = mkMerge [
@@ -103,13 +105,12 @@ in {
         inherit (config) id;
         name = mkDefault cfg.name;
         step = {
-          ci-setup = {
+          ci-setup = mkIf (cfg.export || any (c: c.enable && c.publicKey == null) (attrValues config.cache.cachix)) {
             order = 200;
             name = "nix setup";
             uses = action "nix/run";
             "with" = {
               attrs = "ci.${config.exportAttrDot}run.${if cfg.export then "bootstrap" else "setup"}";
-              options = "--arg config ${config.ci.configPath}";
               quiet = false;
             };
             /*uses = action "internal/ci-setup";
@@ -125,7 +126,6 @@ in {
             uses = action "nix/run";
             "with" = {
               attrs = "ci.${config.exportAttrDot}run.test";
-              options = "--arg config ${config.ci.configPath}";
               quiet = false;
             };
             /*uses = action "internal/ci-build";
@@ -153,7 +153,6 @@ in {
             name = "nix build ci.gh-actions.configFile";
             uses = action "nix/build";
             "with" = {
-              options = "--arg config ${config.ci.configPath}";
               attrs = "ci.gh-actions.configFile";
               out-link = ".ci/workflow.yml";
             };
@@ -171,7 +170,7 @@ in {
       }))
     ];
   };
-  config.export.run.gh-actions-generate = mkIf (cfg.enable && cfg.path != null) (config.lib.ci.nixRunWrapper "gh-actions-generate" (config.bootstrap.pkgs.writeShellScriptBin "gh-actions-generate" ''
+  config.export.run.gh-actions-generate = mkIf (cfg.enable && cfg.path != null) (config.lib.ci.nixRunWrapper "gh-actions-generate" (channels.cipkgs.writeShellScriptBin "gh-actions-generate" ''
     cp --no-preserve=mode,ownership,timestamps ${config.export.gh-actions.configFile} ${cfg.path}
   ''));
 }

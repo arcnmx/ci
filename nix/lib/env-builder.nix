@@ -11,7 +11,7 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
   passAsFile = [ "source" "env" "rc" "shellBin" ] ++ passAsFile;
 
   packages = map getBin packages;
-  ciRoot = toString ../..;
+  ciRoot = config.lib.ci.storePathFor ../..;
   nixPathStr = builtins.concatStringsSep ":" (builtins.attrValues (builtins.mapAttrs (k: v: "${k}=${v}") config.nixPath));
   glibcLocaleVars = optionals hostPlatform.isLinux (mapAttrsToList (name: path:
     "LOCALE_ARCHIVE_${name}=${path}"

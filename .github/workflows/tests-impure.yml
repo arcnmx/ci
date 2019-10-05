@@ -1,9 +1,10 @@
+env:
+  CI_ALLOW_ROOT: '1'
+  CI_CLOSE_STDIN: '1'
+  CI_CONFIG: ./tests/impure.nix
+  CI_PLATFORM: gh-actions
 jobs:
   ci:
-    env:
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
     name: tests-impure
     runs-on: ubuntu-latest
     steps:
@@ -17,27 +18,13 @@ jobs:
       uses: ./actions/nix/install
     - env:
         CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
-      name: nix setup
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.run.setup
-        options: --arg config ./tests/impure.nix
-        quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
       id: ci-test
       name: nix test
       uses: ./actions/nix/run
       with:
         attrs: ci.run.test
-        options: --arg config ./tests/impure.nix
         quiet: false
   ci-check:
-    env:
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
     name: tests-impure check
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +41,6 @@ jobs:
       uses: ./actions/nix/build
       with:
         attrs: ci.gh-actions.configFile
-        options: --arg config ./tests/impure.nix
         out-link: .ci/workflow.yml
     - id: ci-action-compare
       name: gh-actions compare

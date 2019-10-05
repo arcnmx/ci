@@ -1,9 +1,10 @@
+env:
+  CI_ALLOW_ROOT: '1'
+  CI_CLOSE_STDIN: '1'
+  CI_CONFIG: ./tests/empty.nix
+  CI_PLATFORM: gh-actions
 jobs:
   ci:
-    env:
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
     name: tests-empty
     runs-on: ubuntu-latest
     steps:
@@ -17,27 +18,13 @@ jobs:
       uses: arcnmx/ci/actions/nix/install@modules
     - env:
         CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
-      name: nix setup
-      uses: arcnmx/ci/actions/nix/run@modules
-      with:
-        attrs: ci.run.setup
-        options: --arg config ./tests/empty.nix
-        quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
       id: ci-test
       name: nix test
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.run.test
-        options: --arg config ./tests/empty.nix
         quiet: false
   ci-check:
-    env:
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
     name: tests-empty check
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +41,6 @@ jobs:
       uses: arcnmx/ci/actions/nix/build@modules
       with:
         attrs: ci.gh-actions.configFile
-        options: --arg config ./tests/empty.nix
         out-link: .ci/workflow.yml
     - id: ci-action-compare
       name: gh-actions compare

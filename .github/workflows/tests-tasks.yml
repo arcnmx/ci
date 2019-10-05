@@ -1,9 +1,10 @@
+env:
+  CI_ALLOW_ROOT: '1'
+  CI_CLOSE_STDIN: '1'
+  CI_CONFIG: ./tests/tasks.nix
+  CI_PLATFORM: gh-actions
 jobs:
   ci-check:
-    env:
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
     name: tests-tasks check
     runs-on: ubuntu-latest
     steps:
@@ -20,7 +21,6 @@ jobs:
       uses: ./actions/nix/build
       with:
         attrs: ci.gh-actions.configFile
-        options: --arg config ./tests/tasks.nix
         out-link: .ci/workflow.yml
     - id: ci-action-compare
       name: gh-actions compare
@@ -30,10 +30,6 @@ jobs:
         attrs: nixpkgs.diffutils
         command: diff
   linux:
-    env:
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
     name: tests-tasks-linux
     runs-on: ubuntu-latest
     steps:
@@ -47,27 +43,13 @@ jobs:
       uses: ./actions/nix/install
     - env:
         CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
-      name: nix setup
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.job.linux.run.setup
-        options: --arg config ./tests/tasks.nix
-        quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
       id: ci-test
       name: nix test
       uses: ./actions/nix/run
       with:
         attrs: ci.job.linux.run.test
-        options: --arg config ./tests/tasks.nix
         quiet: false
   mac:
-    env:
-      CI_ALLOW_ROOT: '1'
-      CI_CLOSE_STDIN: '1'
-      CI_PLATFORM: gh-actions
     name: tests-tasks-mac
     runs-on: macOS-latest
     steps:
@@ -81,21 +63,11 @@ jobs:
       uses: ./actions/nix/install
     - env:
         CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
-      name: nix setup
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.job.mac.run.setup
-        options: --arg config ./tests/tasks.nix
-        quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
       id: ci-test
       name: nix test
       uses: ./actions/nix/run
       with:
         attrs: ci.job.mac.run.test
-        options: --arg config ./tests/tasks.nix
         quiet: false
 name: tests-tasks
 'on':

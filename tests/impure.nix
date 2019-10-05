@@ -10,7 +10,7 @@
       echo '{ "hello": "world" }' | ${jq}/bin/jq -er .hello -
     '';
   };
-  project.tasks.impure.inputs = let
+  tasks.impure.inputs = let
     jq = pkgs.ci.command {
       name = "impure-jq";
       command = ''

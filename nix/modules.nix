@@ -1,4 +1,4 @@
-{ pkgs, check ? true }: let
+{ pkgs ? null, check ? true }: let
   libPath = import ./lib/lib.nix;
   module = { config, lib, ... }: with lib; {
     imports = [
@@ -10,10 +10,15 @@
       inherit check;
     };
     #config.lib = import ./lib { inherit lib; };
-    config.ci.pkgs = {
-      system = mkOptionDefault pkgs.system;
-      config = mkOptionDefault pkgs.config;
-      overlays = mkOptionDefault pkgs.overlays;
+    config.nixpkgs = mkIf (pkgs != null) {
+      args = {
+        localSystem = config.lib.ci.mkOptionDefault1 pkgs.buildPlatform.system;
+        crossSystem = mkIf (pkgs.buildPlatform != pkgs.hostPlatform) (config.lib.ci.mkOptionDefault1 pkgs.hostPlatform.system);
+        config = mapAttrs (_: config.lib.ci.mkOptionDefault1) pkgs.config or {};
+        overlays = pkgs.overlays or [];
+        crossOverlays = pkgs.crossOverlays or [];
+      };
+      path = config.lib.ci.mkOptionDefault2 (toString pkgs.path);
     };
   };
 in [
@@ -21,8 +26,6 @@ in [
   ./lib.nix
   ./exec.nix
   ./config.nix
-  ./cipkgs.nix
-  ./nixpkgs.nix
   ./project.nix
   ./tasks.nix
   ./actions.nix

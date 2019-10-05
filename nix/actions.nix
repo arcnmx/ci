@@ -1,5 +1,4 @@
-{ pkgs, config, lib, ... }: with lib; let
-  #inherit (config.ci.env.bootstrap) pkgs;
+{ channels, config, lib, ... }: with lib; let
   filterEmpty = filterAttrs (_: v: v != null && v != { } && v != [ ]);
   cfg = config.gh-actions;
   containerType = types.submodule ({ name, ... }: {
@@ -238,11 +237,11 @@ in {
     };
   };
   config.gh-actions = mkIf config.gh-actions.enable {
-    configFile = pkgs.stdenvNoCC.mkDerivation {
+    configFile = channels.cipkgs.stdenvNoCC.mkDerivation {
       name = "gh-actions.yml";
       preferLocalBuild = true;
       allowSubstitutes = false;
-      nativeBuildInputs = with pkgs; [ yq ];
+      nativeBuildInputs = with channels.cipkgs; [ yq ];
       data = builtins.toJSON (filterEmpty {
         inherit (cfg) name on env;
         jobs = mapAttrs' (_: j: nameValuePair j.id (filterEmpty {

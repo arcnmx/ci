@@ -1,4 +1,4 @@
-{ pkgs, lib, config, import, ... }: with lib; {
+{ pkgs, lib, config, channels, ... }: with lib; {
   name = "example";
   ci.gh-actions = {
     enable = true;
@@ -19,7 +19,7 @@
 
   # dependencies that can use custom caches and channels
   environment.test = let
-    nur = import.nur;
+    nur = channels.nur;
   in {
     inherit (pkgs) lolcat ncurses;
     inherit (nur.repos.dtz.pkgs) crex;

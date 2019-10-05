@@ -4,11 +4,11 @@
 
   passAsFile = [ "setup" ];
 
-  cachixUse = attrNames (filterAttrs (_: v: v.publicKey == null) config.cache.cachix);
+  cachixUse = attrNames (filterAttrs (_: c: c.enable && c.publicKey == null) config.cache.cachix);
   inherit (config.bootstrap.packages) cachix coreutils;
   inherit (config.environment) allowRoot;
-  inherit (config.nix.corepkgs.config) nixSysconfDir;
-  inherit (config.nix) configFile;
+  nixSysconfDir = "${config.nix.corepkgs.config.nixSysconfDir}/nix";
+  #inherit (config.nix) configFile;
   setup = ''
     #!@runtimeShell@
     set -eu
@@ -23,9 +23,11 @@
         "$@"
       fi
     }
-    asroot @coreutils@/bin/mkdir -p @nixSysconfDir@/nix &&
-    asroot @coreutils@/bin/tee -a @nixSysconfDir@/nix/nix.conf < @configFile@ ||
-      echo failed to configure @nixSysconfDir@/nix/nix.conf >&2
+
+    #asroot @coreutils@/bin/mkdir -p @nixSysconfDir@ &&
+    #asroot @coreutils@/bin/tee -a @nixSysconfDir@/nix.conf < @configFile@ ||
+    #  echo failed to configure @nixSysconfDir@/nix.conf >&2
+
     for cachixCache in @cachixUse@; do
       echo Setting up cache $cachixCache... >&2
       asroot @cachix@/bin/cachix use $cachixCache ||

@@ -48,22 +48,37 @@ export NIX_PATH_DIR="$NIX_STORE_DIR/store/$NIX_STORE_NIX/bin"
 $NIX_PATH_DIR/nix-store --init
 $NIX_PATH_DIR/nix-store --load-db < $NIX_STORE_DIR/.reginfo
 rm $NIX_STORE_DIR/.reginfo
+export CI_CONFIG_ROOT="${CI_CONFIG_ROOT-$PWD}"
 
 if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
   export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$($NIX_PATH_DIR/nix eval --raw -f "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
 fi
 
 # set up a default config
-cat $($NIX_PATH_DIR/nix eval --raw --arg config ./tests/empty.nix ci.config.nix.configFile) >> /etc/nix/nix.conf
+cat $($NIX_PATH_DIR/nix eval --raw --arg config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} ci.config.nix.configFile) >> /etc/nix/nix.conf
+
+export_env() {
+  case "${CI_PLATFORM-}" in
+    gh-actions)
+      echo "::set-env name=$1::$2"
+      ;;
+    azure-pipelines)
+      echo "##vso[task.setvariable variable=$1]$2"
+      ;;
+  esac
+}
+
+export_env NIX_VERSION "$NIX_VERSION"
+export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
+export_env CI_CONFIG_ROOT "$CI_CONFIG_ROOT"
+if [[ -n ${NIX_PATH-} ]]; then
+  export_env NIX_PATH "$NIX_PATH"
+fi
 
 case "${CI_PLATFORM-}" in
   gh-actions)
     echo "::set-output name=version::$NIX_VERSION"
     echo "::set-output name=nix-path::${NIX_PATH-}"
-    echo "::set-env name=NIX_SSL_CERT_FILE::$NIX_SSL_CERT_FILE"
-    if [[ -n ${NIX_PATH-} ]]; then
-      echo "::set-env name=NIX_PATH::$NIX_PATH"
-    fi
     echo "::add-path::$NIX_PATH_DIR"
     sudo chown 0:0 / || true
     ;;
@@ -72,7 +87,6 @@ case "${CI_PLATFORM-}" in
     cat >> ~/.bash_profile <<EOF
 
 export PATH="$NIX_PATH_DIR:\$PATH"
-export NIX_SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
 #source "$NIX_PROFILE"
 EOF
     ;;

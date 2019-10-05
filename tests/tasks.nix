@@ -7,16 +7,20 @@
   environment.test = {
     inherit (pkgs) hello;
   };
-  cache.cachix.ci.enable = true;
+  cache.cachix.ci = {
+    # including the public key makes `cachix use` unnecessary
+    enable = true;
+    publicKey = "ci.cachix.org-1:PNnkaD7orCQhpX698ERHZ5MrtdGK/DacprP+7Ye/ens=";
+  };
   jobs = {
     linux = {
-      ci.pkgs.system = "x86_64-linux";
+      system = "x86_64-linux";
     };
     mac = {
-      ci.pkgs.system = "x86_64-darwin";
+      system = "x86_64-darwin";
     };
   };
-  project.tasks = {
+  tasks = {
     build.inputs = let
       magic = "compassion";
       drv = pkgs.runCommand "build-task" {

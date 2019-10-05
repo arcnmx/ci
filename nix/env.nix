@@ -1,5 +1,29 @@
 { pkgs, lib, config, ... }: with lib; let
   config' = config;
+  channels = import ./lib/channels.nix lib;
+  channelArgs = {
+    inherit (config.lib) channelUrls;
+    inherit pkgs;
+    bootpkgs = config.nixpkgs.import;
+  };
+  channelType = channels.channelTypeCoerced (channels.channelType (channelArgs // {
+    inherit (config) channels;
+    ciOverlayArgs = {
+      inherit config;
+    };
+  }));
+  nixpkgsType = channels.channelTypeCoerced (channels.channelType (channelArgs // {
+    channels = {
+      ci = {
+        inherit (config.channels.ci) enable overlays;
+      };
+      inherit (config.bootstrap) nixpkgs;
+    };
+    isNixpkgs = true;
+    ciOverlayArgs = {
+      inherit config;
+    };
+  }));
   envOrNull = envOr null;
   envOr = fallback: key: let
     value = builtins.getEnv key;
@@ -41,10 +65,18 @@ in {
         default = "";
       };
     };
+    nixpkgs = mkOption {
+      type = nixpkgsType;
+      default = { };
+    };
+    system = mkOption {
+      type = types.nullOr channels.systemType;
+      default = null;
+    };
     bootstrap = {
       pkgs = mkOption {
         type = types.unspecified;
-        default = config.ci.pkgs.pkgs;
+        default = config.nixpkgs.import;
         internal = true;
       };
       runtimeShell = mkOption {
@@ -114,84 +146,8 @@ in {
         };
       };
     };
-    channels = let
-      channelType = types.submodule ({ name, config, ... }: {
-        options = {
-          name = mkOption {
-            type = types.str;
-            default = name;
-          };
-          version = mkOption {
-            type = types.str;
-          };
-          url = mkOption {
-            type = types.str;
-          };
-          path = mkOption {
-            type = types.str;
-          };
-          file = mkOption {
-            type = types.nullOr types.str;
-            default = {
-              mozilla = "package-set.nix";
-            }.${config.name} or null;
-          };
-          args = mkOption {
-            type = types.attrsOf types.unspecified;
-          };
-          overlays = mkOption {
-            type = types.listOf types.unspecified;
-          };
-          import = mkOption {
-            type = types.unspecified;
-            internal = true;
-          };
-        };
-
-        config = {
-          args = let pkgs = config'.channels.nixpkgs.import; in {
-            nur = {
-              inherit pkgs;
-              nurpkgs = config'.bootstrap.pkgs;
-            };
-            arc = { inherit pkgs; };
-            home-manager = { inherit pkgs; };
-            mozilla = { inherit pkgs; };
-          }.${config.name} or { };
-          overlays = {
-            rust = [ (config.path + "/overlay.nix") ];
-            arc = [ (config.path + "/overlay.nix") ];
-            home-manager = [ (config.path + "/overlay.nix") ];
-            mozilla = import (config.path + "/overlays.nix");
-            #ci = import (config.path + "/nix/lib/overlay.nix");
-          }.${config.name} or [];
-          path = mkOptionDefault (
-            if hasPrefix builtins.storeDir (toString config.url) then /. + builtins.storePath config.url
-            else if hasPrefix "/" (toString config.url) then toString config.url
-            else builtins.fetchTarball {
-              name = "source"; # or config.name?
-              inherit (config) url;
-            });
-          url = mkOptionDefault (config'.lib.channelUrls.${config.name} config.version);
-          import = let
-            args = if config.name == "nixpkgs"
-              then config.args // {
-                overlays = config'.ci.pkgs.overlays ++ config.args.overlays or []
-                  ++ concatMap (c: c.overlays) (attrValues (filterAttrs (k: _: k != "nixpkgs") config'.channels));
-                system = config'.ci.pkgs.system;
-                config = config.args.config or {} // config'.ci.pkgs.config;
-              } else config.args;
-            file = if config.file != null
-              then config.path + "/${config.file}"
-              else config.path;
-          in import file args;
-        };
-      });
-      fudge = types.coercedTo types.str (version: {
-        inherit version;
-      }) channelType;
-    in mkOption {
-      type = types.attrsOf fudge;
+    channels = mkOption {
+      type = types.attrsOf channelType;
     };
     nixPath = mkOption {
       type = types.attrsOf types.path;
@@ -290,6 +246,13 @@ in {
         max-silent-time = 60 * 30;
         fsync-metadata = false;
         use-sqlite-wal = true;
+      } // {
+        substituters = mkIf (config.cache.substituters != { }) (
+          mapAttrsToList (_: s: s.url) config.cache.substituters
+        );
+        trusted-public-keys = mkIf (any (s: s.publicKeys != []) (attrValues config.cache.substituters)) (
+          concatLists (mapAttrsToList (_: s: s.publicKeys) config.cache.substituters)
+        );
       };
       configFile = let
         toNixValue = v:
@@ -331,53 +294,32 @@ in {
         signingKey = envOrNull "CACHIX_SIGNING_KEY";
       };
     };
-    lib.nixpkgsChannels = let
-      inherit (config.bootstrap.pkgs) hostPlatform;
-    in {
-      stable = "19.03";
-      stable-small = "${config.lib.nixpkgsChannels.stable}-small";
-      unstable = if hostPlatform.isLinux
-        then "nixos-unstable"
-        else "nixpkgs-unstable";
-      unstable-small = if hostPlatform.isLinux
-        then "nixos-unstable-small"
-        else nixpkgsChannels.unstable;
-      "20.03" = config.lib.nixpkgsChannels.unstable;
-      "20.03-small" = config.lib.nixpkgsChannels.unstable-small;
-    };
-    lib.channelUrls = {
-      # TODO: think about how this will work with flakes. want to expand this to include overlays!
-      githubChannel = slug: c: "https://github.com/${slug}/archive/${c}.tar.gz";
-      # TODO: if nixpkgs is a git ref use githubChannel instead
-      nixpkgs = c: let
-        c' = config.lib.nixpkgsChannels.${c} or c;
-        stable = builtins.match "([0-9][0-9]\\.[0-9][0-9]).*" c';
-        channel = if stable != null then
-          (if config.bootstrap.pkgs.hostPlatform.isDarwin
-            then "nixpkgs-${builtins.elemAt stable 0}-darwin"
-            else "nixos-${c'}")
-          else if builtins.match ".*-.*" c' != null then c'
-          else null;
-      in if channel != null
-        then "https://nixos.org/channels/${channel}/nixexprs.tar.xz"
-        else config.lib.channelUrls.githubChannel "nixos/nixpkgs" c';
-      home-manager = config.lib.channelUrls.githubChannel "rycee/home-manager";
-      mozilla = config.lib.channelUrls.githubChannel "mozilla/nixpkgs-mozilla";
-      rust = config.lib.channelUrls.githubChannel "arcnmx/nixexprs-rust";
-      nur = config.lib.channelUrls.githubChannel "nix-community/NUR";
-      arc = config.lib.channelUrls.githubChannel "arcnmx/nixexprs";
-      ci = config.lib.channelUrls.githubChannel "arcnmx/ci";
+    nixpkgs = {
+      args.system = mkIf (config.system != null) (config.lib.ci.mkOptionDefault2 config.system);
+      path = config.lib.ci.mkOptionDefault1 (config.lib.nixpkgsPathFor.${builtins.nixVersion} or config.lib.nixpkgsPathFor."19.03");
     };
     channels = {
-      nixpkgs = mkOptionDefault {
-        path = config.ci.pkgs.path;
+      nixpkgs.args = with { mkDefault = config.lib.ci.mkOptionDefault1; }; {
+        localSystem = mkDefault config.nixpkgs.args.localSystem;
+        crossSystem = mkDefault config.nixpkgs.args.crossSystem;
+        system = mkDefault config.nixpkgs.args.system;
+        config = mapAttrs (_: mkDefault) config.nixpkgs.args.config;
+        # TODO: overlays?
+        crossOverlays = mkDefault config.nixpkgs.args.crossOverlays;
+        stdenvStages = mkDefault config.nixpkgs.args.stdenvStages;
       };
+      nixpkgs = {
+        path = config.nixpkgs.path;
+      };
+      ci = {
+        version = "modules";
+        path = toString ../.;
+      };
+      # TODO: cipkgs? dunno, this ends up in the environment... but maybe that's fine? you can't get away with building an env without using cipkgs!
     } // mapAttrs (_: mkDefault) (optionalAttrs config.environment.impure (channelsFromEnv screamingSnakeCase "NIX_CHANNELS_"));
     nixPath = {
-      nixpkgs = if hasPrefix builtins.storeDir (toString pkgs.path)
-        then builtins.storePath pkgs.path
-        else filteredSource pkgs.path;
-    } // mapAttrs (_: c: c.path) config.channels;
+      nixpkgs = config.lib.ci.storePathFor config.channels.nixpkgs.path;
+    } // mapAttrs (_: c: config.lib.ci.storePathFor c.path) config.channels;
     cache.substituters = {
       nixos = {
         url = nixosCache;
@@ -388,10 +330,38 @@ in {
       publicKeys = optional (v.publicKey != null) v.publicKey;
     }) (filterAttrs (_: c: c.enable) config.cache.cachix);
 
-    lib.ci.import = config.lib.ci.nixPathImport config.nixPath;
+    lib = {
+      channelUrls = channels.channelUrls {
+        inherit (config.lib) nixpkgsChannels;
+        inherit (config.lib.ci) githubChannel;
+        inherit (systems.elaborate config.nixpkgs.args.system) isDarwin;
+      };
+      nixpkgsChannels = channels.nixpkgsChannels {
+        inherit (config.lib) nixpkgsChannels;
+        inherit (systems.elaborate config.nixpkgs.args.system) isLinux;
+      };
+      nixpkgsPathFor = mapAttrs (_: builtins.fetchTarball) (import ./lib/cipkgs.nix).nixpkgsFor;
+      ci = {
+        inherit (channels) githubChannel;
+        import = config.lib.ci.nixPathImport config.nixPath;
+        mkOverrideAdj = mkOverride: adj: content: let
+          res = mkOverride content;
+        in res // {
+          priority = res.priority + adj;
+        };
+        mkOptionDefault1 = config.lib.ci.mkOverrideAdj mkOptionDefault (-100);
+        mkOptionDefault2 = config.lib.ci.mkOverrideAdj config.lib.ci.mkOptionDefault1 (-100);
+        storePathFor = path: if hasPrefix builtins.storeDir (toString path)
+          then builtins.storePath path
+          else if builtins.getEnv "CI_PLATFORM" == "impure" then toString path
+          else filteredSource path;
+      };
+    };
+
     _module.args = {
-      import = mapAttrs (_: c: c.import) config.channels // {
-        __functor = config.lib.ci.import;
+      inherit (config.lib.ci) import;
+      channels = mapAttrs (_: c: c.import) config.channels // {
+        cipkgs = config.nixpkgs.import;
       };
       pkgs = mkOptionDefault config.channels.nixpkgs.import;
     };
