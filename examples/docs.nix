@@ -21,6 +21,7 @@
           else if builtins.getEnv "GIT_DEPLOY_KEY" == "" then "missing key"
           else false;
         environment = [ "GITHUB_REPOSITORY" "GITHUB_SHA" ];
+        #nativeBuildInputs = with pkgs; [ openssh gitMinimal ];
         command = ''
           DOCDIR=$(mktemp -d)
           cd $DOCDIR
@@ -38,7 +39,7 @@
           git commit -m "$GITHUB_SHA"
 
           install -Dm0600 /tmp/${placeholder "GIT_DEPLOY_KEY"} deployKey
-          GIT_SSH_COMMAND="ssh -i deployKey -F /dev/null -v" git push -q origin HEAD:gh-pages
+          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i deployKey" git push -q origin HEAD:gh-pages
         '';
       };
     };
