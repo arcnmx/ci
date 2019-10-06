@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: with lib; {
   gh-actions.env = {
     GITHUB_EVENT_NAME = "\${{ github.event_name }}";
     GITHUB_REF = "\${{ github.ref }}";
@@ -9,7 +9,7 @@
   tasks = {
     build.inputs = [ config.doc.manual ];
     deploy = {
-      preBuild = ''
+      preBuild = optionalString (builtins.getEnv "GIT_DEPLOY_KEY" != "") ''
         echo "$GIT_DEPLOY_KEY" > /tmp/${placeholder "GIT_DEPLOY_KEY"}
       '';
       inputs = pkgs.ci.command {
@@ -38,7 +38,7 @@
           git commit -m "$GITHUB_SHA"
 
           install -Dm0600 /tmp/${placeholder "GIT_DEPLOY_KEY"} deployKey
-          GIT_SSH_COMMAND="ssh -i deployKey" git push -q origin HEAD:gh-pages
+          GIT_SSH_COMMAND="ssh -i deployKey -F /dev/null -v" git push -q origin HEAD:gh-pages
         '';
       };
     };
