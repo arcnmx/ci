@@ -57,9 +57,9 @@ drv_report() {
         REPORT_MSG="failed (allowed, ignored)"
         #REPORT_ICON="⚠️"
         REPORT_ICON="!"
-        #if [[ ${CI_PLATFORM-} = gh-actions ]]; then
-        #  echo "::warning::${drvName[$1]} failed to build"
-        #fi
+        if [[ ${CI_PLATFORM-} = gh-actions ]]; then
+          echo "::warning::${drvName[$1]} failed to build"
+        fi
       else
         REPORT_COLOUR=@red@
         REPORT_MSG=failed
@@ -67,9 +67,9 @@ drv_report() {
         #if [[ -z ${3-} ]]; then
         #  EXIT_CODE=1
         #fi
-        #if [[ ${CI_PLATFORM-} = gh-actions ]]; then
-        #  echo "::error::${drvName[$1]} failed to build"
-        #fi
+        if [[ ${CI_PLATFORM-} = gh-actions ]]; then
+          echo "::error::${drvName[$1]} failed to build"
+        fi
       fi
       ;;
     ok)
