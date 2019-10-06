@@ -24,7 +24,7 @@ in {
     };
   };
 
-  options.export.doc = {
+  options.doc = {
     json = mkOption {
       type = types.unspecified;
     };
@@ -39,7 +39,14 @@ in {
     };
   };
 
-  config.export.doc = {
+  options.export.doc = mkOption {
+    type = types.unspecified;
+  };
+
+  config.doc = {
     inherit (config.bootstrap.pkgs.ci.doc) manPages manual open json;
+  };
+  config.export = {
+    inherit (config) doc;
   };
 }
