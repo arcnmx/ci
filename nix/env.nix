@@ -1,5 +1,4 @@
 { pkgs, lib, config, ... }: with lib; let
-  config' = config;
   channels = import ./lib/channels.nix lib;
   channelArgs = {
     inherit (config.lib) channelUrls;
@@ -11,6 +10,24 @@
     ciOverlayArgs = {
       inherit config;
     };
+    defaultConfig = {
+      nixpkgs = {
+        args = with { mkDefault = config.lib.ci.mkOptionDefault1; }; {
+          localSystem = mkDefault config.nixpkgs.args.localSystem;
+          crossSystem = mkDefault config.nixpkgs.args.crossSystem;
+          system = mkDefault config.nixpkgs.args.system;
+          config = mapAttrs (_: mkDefault) config.nixpkgs.args.config;
+          # TODO: overlays?
+          crossOverlays = mkDefault config.nixpkgs.args.crossOverlays;
+          stdenvStages = mkDefault config.nixpkgs.args.stdenvStages;
+        };
+        path = config.lib.ci.mkOptionDefault1 config.nixpkgs.path;
+      };
+      ci = {
+        version = "modules";
+        path = toString ../.;
+      };
+    } // mapAttrs (_: v: { version = mkDefault v; }) (optionalAttrs config.environment.impure (channelsFromEnv screamingSnakeCase "NIX_CHANNELS_"));
   }));
   nixpkgsType = channels.channelTypeCoerced (channels.channelType (channelArgs // {
     channels = {
@@ -22,6 +39,10 @@
     isNixpkgs = true;
     ciOverlayArgs = {
       inherit config;
+    };
+    defaultConfig.nixpkgs = {
+      args.system = mkIf (config.system != null) (config.lib.ci.mkOptionDefault2 config.system);
+      path = config.lib.ci.mkOptionDefault1 (config.lib.nixpkgsPathFor.${builtins.nixVersion} or config.lib.nixpkgsPathFor."19.03");
     };
   }));
   envOrNull = envOr null;
@@ -294,32 +315,12 @@ in {
         signingKey = envOrNull "CACHIX_SIGNING_KEY";
       };
     };
-    nixpkgs = {
-      args.system = mkIf (config.system != null) (config.lib.ci.mkOptionDefault2 config.system);
-      path = config.lib.ci.mkOptionDefault1 (config.lib.nixpkgsPathFor.${builtins.nixVersion} or config.lib.nixpkgsPathFor."19.03");
-    };
     channels = {
-      nixpkgs.args = with { mkDefault = config.lib.ci.mkOptionDefault1; }; {
-        localSystem = mkDefault config.nixpkgs.args.localSystem;
-        crossSystem = mkDefault config.nixpkgs.args.crossSystem;
-        system = mkDefault config.nixpkgs.args.system;
-        config = mapAttrs (_: mkDefault) config.nixpkgs.args.config;
-        # TODO: overlays?
-        crossOverlays = mkDefault config.nixpkgs.args.crossOverlays;
-        stdenvStages = mkDefault config.nixpkgs.args.stdenvStages;
-      };
-      nixpkgs = {
-        path = config.nixpkgs.path;
-      };
-      ci = {
-        version = "modules";
-        path = toString ../.;
-      };
-      # TODO: cipkgs? dunno, this ends up in the environment... but maybe that's fine? you can't get away with building an env without using cipkgs!
-    } // mapAttrs (_: mkDefault) (optionalAttrs config.environment.impure (channelsFromEnv screamingSnakeCase "NIX_CHANNELS_"));
-    nixPath = {
-      nixpkgs = config.lib.ci.storePathFor config.channels.nixpkgs.path;
-    } // mapAttrs (_: c: config.lib.ci.storePathFor c.path) config.channels;
+      nixpkgs = mkOptionDefault { };
+      ci = mkOptionDefault { };
+    };
+    # TODO: cipkgs? dunno, this ends up in the environment... but maybe that's fine? you can't get away with building an env without using cipkgs!
+    nixPath = mapAttrs (_: c: config.lib.ci.storePathFor c.path) config.channels;
     cache.substituters = {
       nixos = {
         url = nixosCache;

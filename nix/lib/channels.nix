@@ -1,5 +1,5 @@
 lib: with lib; rec {
-  channelType = { channelUrls, channels, /*system,*/ bootpkgs, ciOverlayArgs, isNixpkgs ? false, pkgs ? channels.nixpkgs.import }: types.submodule ({ name, config, ... }: {
+  channelType = { channelUrls, channels, /*system,*/ bootpkgs, ciOverlayArgs, defaultConfig, isNixpkgs ? false, pkgs ? channels.nixpkgs.import }: types.submodule ({ name, config, ... }: {
     options = {
       enable = mkEnableOption "channel" // { default = true; };
       name = mkOption {
@@ -8,7 +8,6 @@ lib: with lib; rec {
       };
       version = mkOption {
         type = types.nullOr types.str;
-        default = null;
       };
       url = mkOption {
         type = types.nullOr types.str;
@@ -18,15 +17,11 @@ lib: with lib; rec {
       };
       file = mkOption {
         type = types.nullOr types.str;
-        default = {
-          mozilla = "package-set.nix";
-        }.${config.name} or null;
       };
       args = mkOption {
         type = if isNixpkgs || name == "nixpkgs"
           then nixpkgsType { inherit channels; }
           else types.attrsOf types.unspecified;
-        default = { };
       };
       overlays = mkOption {
         type = types.listOf types.unspecified;
@@ -37,14 +32,20 @@ lib: with lib; rec {
       };
     };
     config = {
-      args = {
-        nur = {
-          nurpkgs = bootpkgs;
-        };
-        ci = { pkgs = bootpkgs; };
-      }.${config.name} or { };
+      version = defaultConfig.${config.name}.version or (mkOptionDefault null);
 
-      overlays = {
+      args = defaultConfig.${config.name}.args or ({
+        nur = {
+          nurpkgs = mkOptionDefault bootpkgs;
+        };
+        ci = { pkgs = mkOptionDefault bootpkgs; };
+      }.${config.name} or (mkOptionDefault { }));
+
+      file = defaultConfig.${config.name}.file or (mkOptionDefault {
+        mozilla = "package-set.nix";
+      }.${config.name} or null);
+
+      overlays = defaultConfig.${config.name}.overlays or (mkOptionDefault {
         rust = [ (config.path + "/overlay.nix") ];
         arc = [ (config.path + "/overlay.nix") ];
         home-manager = [ (config.path + "/overlay.nix") ];
@@ -66,31 +67,33 @@ lib: with lib; rec {
           (config.path + "/nix/overlay.nix")
           (import (config.path + "/nix/lib/overlay.nix") ciOverlayArgs)
         ];
-      }.${config.name} or [];
+      }.${config.name} or []);
 
-      path = mkIf (config.url != null) (mkDefault (
-        if hasPrefix builtins.storeDir (toString config.url) then /. + builtins.storePath config.url
-        else if hasPrefix "/" (toString config.url) then toString config.url
-        else builtins.fetchTarball {
-          name = "source"; # or config.name?
-          inherit (config) url;
-        }
-      ));
+      path = mkMerge ([
+        (mkIf (config.url != null) (mkDefault (
+          if hasPrefix builtins.storeDir (toString config.url) then /. + builtins.storePath config.url
+          else if hasPrefix "/" (toString config.url) then toString config.url
+          else builtins.fetchTarball {
+            name = "source"; # or config.name?
+            inherit (config) url;
+          }
+        )))
+      ] ++ optional (defaultConfig ? ${config.name}.path) defaultConfig.${config.name}.path);
 
-      url = mkOptionDefault (
+      url = defaultConfig.${config.name}.url or (mkOptionDefault (
         if config.version != null
           then channelUrls.${config.name} config.version
           else null
-      );
+      ));
 
-      import = let
+      import = defaultConfig.${config.name}.import or (let
         args = optionalAttrs (isFunction channel && ((functionArgs channel) ? pkgs)) { inherit pkgs; }
           // config.args.ciChannelArgs or config.args;
         file = if config.file != null
           then config.path + "/${config.file}"
           else config.path;
         channel = import file;
-      in channel args;
+      in channel args);
     };
   });
   channelTypeCoerced = channelType: types.coercedTo types.str (version: {

@@ -13,7 +13,7 @@ in with lib; let
   pkgs'path = builtins.tryEval (import <nixpkgs>);
   pkgs =
     if args.pkgs or null == true && pkgs'path.success then pkgs'path.value pkgs'args
-    else if args.pkgs or null == null then builtins.import nixpkgsPath pkgs'args
+    else if args.pkgs or null == null || args.pkgs or null == true then builtins.import nixpkgsPath pkgs'args
     else args.pkgs;
   pwd = builtins.getEnv "PWD";
   configPath = if builtins.typeOf configuration == "path" then configuration
