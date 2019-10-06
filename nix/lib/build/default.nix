@@ -41,7 +41,7 @@
     drvName = drvAttrs (drv: drv.meta.name or drv.name) (drvs ++ drvsSkipped);
   };
   # TODO: manual derivation rather than using stdenv?
-  buildScriptFor = tasks: config.bootstrap.pkgs.runCommandNoCC config.name ({
+  buildScriptFor = tasks: config.bootstrap.pkgs.buildPackages.runCommandNoCC config.name ({
     __structuredAttrs = true;
     attrsPath = "${placeholder "out"}/${(import ../../global.nix).prefix}/attrs.sh";
     preferLocalBuild = true;

@@ -65,7 +65,7 @@ self: super: let
 
       inherit argVars;
       commandHeader = optionalString ciEnv ''
-        #!${self.runtimeShell}
+        #!${self.buildPackages.runtimeShell}
         source ${config.export.env.test}/${prefix}/source
         ci_env_impure
       '';

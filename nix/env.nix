@@ -64,7 +64,7 @@
     "/.git"
   ] path; # TODO: name = "source"?
   bootstrapStorePath = v: builtins.storePath (/. + v + "/../..");
-  envBuilder = config.bootstrap.pkgs.callPackage (import ./lib/env-builder.nix) { inherit config; };
+  envBuilder = config.bootstrap.pkgs.buildPackages.callPackage (import ./lib/env-builder.nix) { inherit config; };
   needsCache = any (c: c.url != nixosCache) (attrValues config.cache.substituters);
   needsCachix = any (c: c.enable && (c.publicKey == null || c.signingKey != null)) (attrValues config.cache.cachix);
   #envBuilder = { pname, packages, command ? "", ... }: throw "aaa";

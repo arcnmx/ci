@@ -1,5 +1,5 @@
 { lib, config }: with lib; let
-  inherit (config.bootstrap) pkgs;
+  inherit (config.bootstrap.pkgs.buildPackages) pkgs;
   sshExecutor = {
     executor
   }: let
