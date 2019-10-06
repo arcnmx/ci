@@ -39,6 +39,7 @@
     drvCache = drvAttrs drvCachePaths drvs;
     drvInputs = mapAttrs' (_: t: nameValuePair (drvOf t.drv) (concatStringsSep " " (map drvOf (with t.internal.inputs; wrappedImpure ++ pure ++ skipped)))) tasks;
     drvName = drvAttrs (drv: drv.meta.name or drv.name) (drvs ++ drvsSkipped);
+    preBuild = concatMapStringsSep "\n" (t: t.preBuild) tasks'build;
   };
   # TODO: manual derivation rather than using stdenv?
   buildScriptFor = tasks: config.bootstrap.pkgs.buildPackages.runCommandNoCC config.name ({

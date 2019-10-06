@@ -104,10 +104,13 @@ CI_CACHE_LIST=()
 EXIT_CODE=0
 
 if [[ -n $drvExecutor ]]; then
+  # TODO: just make this part of preBuild?
   export EX_PIDFILE=$(mktemp)
   $drvExecutor
   trap 'kill -QUIT $(cat $EX_PIDFILE)' EXIT
 fi
+
+eval "$preBuild"
 
 # TODO: use --add-root with --indirect in a ci cache dir?
 if (( ${#CI_DRV_DIRTY[@]} > 0 )) && ! opRealise "${CI_DRV_DIRTY[@]}" --show-trace --keep-going "$@" || [[ -n $OPT_DRY ]]; then

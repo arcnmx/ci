@@ -33,14 +33,15 @@ self: super: let
   , timeout ? null
   , tests ? null
   , impure ? false
+  , environment ? []
   , ciEnv ? true
   , sha256 ? null
   , ...
   }@args: let
     args' = removeAttrs args [
-      "name" "command" "meta" "passthru" "warn" "skip" "cache" "displayName" "timeout" "tests" "impure" "sha256" "ciEnv" "passAsFile"
+      "name" "command" "meta" "passthru" "warn" "skip" "cache" "displayName" "timeout" "tests" "impure" "sha256" "ciEnv" "passAsFile" "environment"
     ];
-    argVars = attrNames args';
+    argVars = attrNames args' ++ environment;
     commandPath = "${prefix}/run-test";
     command' = if impure == true then ''
       mkdir -p $out/${prefix}
@@ -89,7 +90,7 @@ self: super: let
     } // optionalAttrs (sha256 != null) {
       outputHashAlgo = "sha256";
       outputHash = sha256;
-    } // args');
+    } // genAttrs environment builtins.getEnv // args');
   in drv);
 in {
   ci = super.lib.makeExtensible (cself: {

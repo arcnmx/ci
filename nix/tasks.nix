@@ -52,6 +52,10 @@
         type = fudge;
         default = [ ];
       };
+      preBuild = mkOption {
+        type = types.lines;
+        default = "";
+      };
       buildCommand = mkOption {
         type = types.lines;
         default = "";
