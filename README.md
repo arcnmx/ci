@@ -1,44 +1,36 @@
-[![ci-badge][]][ci]
+# ci
 
-Utilities and helper scripts for continuous integration.
+[![ci-badge][]][ci] [![docs-badge][]][docs]
 
-# CI backends
+A configurable continuous integration and testing system built on top of nix and
+the NixOS module system.
 
-## Travis CI
 
-Add the following to your `.travis.yml` manifest:
+## Getting Started
 
-```yaml
-before_script:
-    - curl -L https://github.com/arcnmx/ci/archive/master.tar.gz | tar -xzC $HOME && . $HOME/ci-master/src
+See the proper [documentation page][docs] for a full description.
+
+
+### Quick Sample
+
+With [nix](https://nixos.org/nix/) installed...
+
+```bash
+export NIX_PATH=ci=https://github.com/arcnmx/ci/archive/master.tar.gz
+nix run --arg config '<ci/examples/ci.nix>' ci.test
 ```
 
-# Languages
 
-## Rust
+### Cloud Providers
 
-Provides functionality similar to
-[travis-cargo](https://github.com/huonw/travis-cargo).
+Though a simple command like the above can be run on any machine or CI service,
+automated configuration generators and full support for job descriptions and
+integrated features such as matrix builds are currently supported for:
 
-### Features
-
-- All cargo commands will run in verbose mode unless `$CARGO_QUIET` is set in
-  the environment.
-- A global `$CARGO_FEATURES` may be used to provide additional feature flags to
-  all invocations of cargo.
-- `cargo doc` will automatically use `--no-deps` unless `--deps` is provided.
-- `$CARGO_TARGET_DIR` will be automatically set to a subdir of
-  `$TRAVIS_BUILD_DIR/target`, hashed by the current rust version and cargo
-  features. You may want to add this directory to the CI cache.
-- `cargo publish` will automatically use the `$CRATES_IO_TOKEN` environment
-  variable if it exists.
-
-### Commands
-
-- `cargo pages-publish` will automatically upload your generated docs to Github
-  Pages. Requires a run of `cargo doc` beforehand. Must be passed an OAuth
-  token as the first argument or via the `$GH_TOKEN` environment variable.
+- [GitHub Actions](https://github.com/features/actions)
 
 
 [ci-badge]: https://github.com/arcnmx/ci/workflows/tests-tasks/badge.svg
 [ci]: https://github.com/arcnmx/ci/actions
+[docs-badge]: https://img.shields.io/badge/API-docs-blue.svg?style=flat-square
+[docs]: https://arcnmx.github.io/ci

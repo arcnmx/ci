@@ -9,11 +9,12 @@
   <preface>
     <title>Preface</title>
     <para>
-      CI is a configurable continuous integration and testing system built on top of nix and the
-      NixOS module system. Its aim is to be flexible in order to meet the many needs of the various
-      technologies and cloud providers in use with CI today, while being simple and self-contained
-      so that all actions can be performed on a local machine. Build results should be reproducible
-      so if it works on your machine then it will work on the CI server as well!
+      <link xlink:href="https://github.com/arcnmx/ci">CI</link> is a configurable continuous
+      integration and testing system built on top of nix and the NixOS module system. Its aim is to
+      be flexible in order to meet the many needs of the various technologies and cloud providers in
+      use with CI today, while being simple and self-contained so that all actions can be performed
+      on a local machine. Build results should be reproducible so if it works on your machine then
+      it will work on the CI server as well!
 
       (this is currently all very much WIP right now, but please do <link xlink:href="https://github.com/arcnmx/ci/issues">file issues</link> if you actually use it and have questions or concerns!)
     </para>
