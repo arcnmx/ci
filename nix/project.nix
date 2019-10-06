@@ -69,6 +69,7 @@ in {
       internal = true;
     };
     warn = mkOption {
+      # TODO: ability to trigger some sort of action/notification
       type = types.bool;
       default = false;
     };
