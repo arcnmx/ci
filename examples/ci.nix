@@ -77,7 +77,10 @@
   environment.glibcLocales = [ channels.cipkgs.glibcLocales pkgs.glibcLocales ];
 
   # we're adding a github-exclusive step here
-  ci.gh-actions.export = true; # want our dependencies to be available in $PATH
+  ci.gh-actions = {
+    emit = true; # normally the existence of other jobs disables the default/implicit job
+    export = true; # want our dependencies to be available in $PATH
+  };
   gh-actions.jobs = {
     ci.step.crex = {
       # using ci.gh-actions.export, we can also access the environment implicitly

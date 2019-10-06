@@ -12,6 +12,7 @@ fi
 # set up a known path where our environment goes
 export CI_ENV=$PWD/result
 export NIX_PATH="ci=${CI_ROOT-$PWD/../}"
+export CI_CONFIG_ROOT=$PWD
 export CI_CONFIG=./ci.nix
 
 # build the base/bootstrap environment and replace CI_ENV with final environment

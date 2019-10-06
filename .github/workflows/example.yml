@@ -5,9 +5,33 @@ env:
   CI_PLATFORM: gh-actions
 jobs:
   ci:
-    name: ci
+    name: example
     runs-on: ubuntu-latest
     steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-setup
+      name: nix setup
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.bootstrap
+        quiet: false
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.test
+        quiet: false
     - id: crex
       run: crex --help | lolcat
   ci-check:
