@@ -171,6 +171,6 @@ in {
     ];
   };
   config.export.run.gh-actions-generate = mkIf (cfg.enable && cfg.path != null) (config.lib.ci.nixRunWrapper "gh-actions-generate" (channels.cipkgs.writeShellScriptBin "gh-actions-generate" ''
-    cp --no-preserve=mode,ownership,timestamps ${config.export.gh-actions.configFile} ${cfg.path}
+    install -Dm0644 ${config.export.gh-actions.configFile} ${cfg.path}
   ''));
 }

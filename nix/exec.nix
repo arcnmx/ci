@@ -74,9 +74,9 @@ in {
 
         function opRealise {
           if [[ "${config.lib.ci.op.realise ""}" = *nix-build* ]]; then
-            ${config.lib.ci.op.realise ''"$@"''} > /dev/null # we don't want it to spit out paths
+            ${config.lib.ci.op.realise ''"$@"''} --no-out-link > /dev/null # we don't want it to spit out paths
           else
-            ${config.lib.ci.op.realise ''"$@"''}
+            ${config.lib.ci.op.realise ''"$@"''} --no-link
           fi
         }
       '';

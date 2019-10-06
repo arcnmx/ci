@@ -13,7 +13,7 @@ lib: with lib; rec {
         type = types.nullOr types.str;
       };
       path = mkOption {
-        type = types.str;
+        type = types.either types.str types.path;
       };
       file = mkOption {
         type = types.nullOr types.str;
