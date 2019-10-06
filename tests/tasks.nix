@@ -52,7 +52,7 @@
         command = ''
           [[ -z ''${NIX_BUILD_TOP-} ]]
           echo "hello from outside the sandbox"
-          [[ -e /root ]]
+          [[ -e /home ]]
         '';
         impure = true;
       };
