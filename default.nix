@@ -1,12 +1,5 @@
 { pkgs ? if builtins.getEnv "CI_PLATFORM" == "impure" then true else null
-, config ? let
-  env = builtins.getEnv "CI_CONFIG";
-  impureConfig = if env != "" then env else (import ./nix/global.nix).defaultConfigPath;
-  impureConfigRoot = builtins.getEnv "CI_CONFIG_ROOT";
-  impureConfigPath = if impureConfigRoot != "" && builtins.match "/.*" impureConfig == null
-    then "${impureConfigRoot}/${impureConfig}"
-    else impureConfig;
-in impureConfigPath
+, config ? let env = builtins.getEnv "CI_CONFIG"; in if env != "" then env else null
 }@args: import ./nix {
   inherit pkgs;
   configuration = config;

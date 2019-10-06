@@ -5,33 +5,9 @@ env:
   CI_PLATFORM: gh-actions
 jobs:
   ci:
-    name: example
+    name: ci
     runs-on: ubuntu-latest
     steps:
-    - id: checkout
-      name: git clone
-      uses: actions/checkout@v1
-      with:
-        submodules: true
-    - id: nix-install
-      name: nix install
-      uses: arcnmx/ci/actions/nix/install@modules
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
-      name: nix setup
-      uses: arcnmx/ci/actions/nix/run@modules
-      with:
-        attrs: ci.run.bootstrap
-        quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-test
-      name: nix test
-      uses: arcnmx/ci/actions/nix/run@modules
-      with:
-        attrs: ci.run.test
-        quiet: false
     - id: crex
       run: crex --help | lolcat
   ci-check:
@@ -59,10 +35,108 @@ jobs:
         args: -u .github/workflows/example.yml .ci/workflow.yml
         attrs: nixpkgs.diffutils
         command: diff
+  docs:
+    env:
+      GITHUB_EVENT_NAME: ${{ github.event_name }}
+      GITHUB_REF: ${{ github.ref }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_SHA: ${{ github.sha }}
+      GIT_DEPLOY_KEY: ${{ secrets.deploy_key }}
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.docs.run.test
+        quiet: false
+  mac:
+    name: example-mac
+    runs-on: macOS-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-setup
+      name: nix setup
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.mac.run.bootstrap
+        quiet: false
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.mac.run.test
+        quiet: false
+  old:
+    name: example-old
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-setup
+      name: nix setup
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.old.run.bootstrap
+        quiet: false
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.old.run.test
+        quiet: false
   script:
     name: example script
     runs-on: ubuntu-latest
     steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.script.run.test
+        quiet: false
     - uses: actions/checkout@v1
     - name: example.sh
       run: ./example.sh

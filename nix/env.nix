@@ -1,4 +1,4 @@
-{ pkgs, lib, config, ... }: with lib; let
+{ pkgs, lib, config, modulesPath, libPath, configPath, rootConfigPath, ... }@args: with lib; let
   channels = import ./lib/channels.nix lib;
   channelArgs = {
     inherit (config.lib) channelUrls;
@@ -8,9 +8,7 @@
   channelType = channels.channelTypeCoerced (channels.channelType (channelArgs // {
     inherit (config) channels;
     specialImport = config._module.args.import;
-    ciOverlayArgs = {
-      inherit config;
-    };
+    ciOverlayArgs = args;
     defaultConfig = {
       nixpkgs = {
         args = with { mkDefault = config.lib.ci.mkOptionDefault1; }; {
@@ -28,6 +26,14 @@
         version = "modules";
         path = toString ../.;
       };
+      nmd = {
+        version = config.lib.ci.mkOptionDefault1 "b437898c2b137c39d9c5f9a1cf62ec630f14d9fc";
+        sha256 = config.lib.ci.mkOptionDefault1 fakeSha256;
+        args = {
+          pkgs = mkOptionDefault config.bootstrap.pkgs;
+          inherit lib;
+        };
+      };
     } // mapAttrs (_: v: { version = mkDefault v; }) (optionalAttrs config.environment.impure (channelsFromEnv screamingSnakeCase "NIX_CHANNELS_"));
   }));
   nixpkgsType = channels.channelTypeCoerced (channels.channelType (channelArgs // {
@@ -39,12 +45,11 @@
     };
     specialImport = throw "nixPathImport unsupported";
     isNixpkgs = true;
-    ciOverlayArgs = {
-      inherit config;
-    };
+    ciOverlayArgs = args;
     defaultConfig.nixpkgs = {
       args.system = mkIf (config.system != null) (config.lib.ci.mkOptionDefault2 config.system);
       path = config.lib.ci.mkOptionDefault1 (config.lib.nixpkgsPathFor.${builtins.nixVersion} or config.lib.nixpkgsPathFor."19.03");
+      # TODO: defaults in url + sha256 instead? doesn't really matter...
     };
   }));
   envOrNull = envOr null;
@@ -75,6 +80,8 @@ in {
         config = mkOption {
           type = types.attrsOf types.unspecified;
           default = import <nix/config.nix>;
+          defaultText = "import <nix/config.nix>";
+          internal = true;
         };
       };
       config = mkOption {
@@ -82,6 +89,7 @@ in {
       };
       configFile = mkOption {
         type = types.path;
+        internal = true;
       };
       extraConfig = mkOption {
         type = types.lines;
@@ -105,46 +113,64 @@ in {
       runtimeShell = mkOption {
         type = types.path;
         default = builtins.storePath (/. + config.nix.corepkgs.config.shell);
+        defaultText = "corepkgs.shell";
+        internal = true;
       };
       packages = {
         # nix appears to expect these to be available in PATH
         tar = mkOption {
           type = types.package;
           default = bootstrapStorePath config.nix.corepkgs.config.tar;
+          defaultText = "corepkgs.tar";
+          visible = false;
         };
         gzip = mkOption {
           type = types.package;
           default = bootstrapStorePath config.nix.corepkgs.config.gzip;
+          defaultText = "corepkgs.gzip";
+          visible = false;
         };
         xz = mkOption {
           type = types.package;
           default = bootstrapStorePath config.nix.corepkgs.config.xz;
+          defaultText = "corepkgs.xz";
+          visible = false;
         };
         bzip2 = mkOption {
           type = types.package;
           default = bootstrapStorePath config.nix.corepkgs.config.bzip2;
+          defaultText = "corepkgs.bzip2";
+          visible = false;
         };
         shell = mkOption {
           type = types.package;
           default = bootstrapStorePath config.nix.corepkgs.config.shell;
+          defaultText = "corepkgs.shell";
+          visible = false;
         };
         coreutils = mkOption {
           type = types.package;
           default = builtins.storePath (/. + config.nix.corepkgs.config.coreutils + "/..");
+          defaultText = "corepkgs.coreutils";
+          visible = false;
         };
         nix = mkOption {
           type = types.package;
           default = builtins.storePath (/. + config.nix.corepkgs.config.nixPrefix);
+          defaultText = "corepkgs.nix";
         };
         cachix = mkOption {
           type = types.package;
           default = getBin config.bootstrap.pkgs.cachix;
+          defaultText = "channels.cipkgs.cachix";
         };
         ci-dirty = mkOption {
           type = types.package;
           default = (import ./tools { inherit (config.bootstrap) pkgs; }).ci-dirty.override {
             inherit (config.bootstrap) runtimeShell;
           };
+          defaultText = "channels.cipkgs.ci-dirty";
+          visible = false;
         };
         ci-query = mkOption {
           type = types.package;
@@ -152,6 +178,8 @@ in {
             inherit (config.bootstrap) runtimeShell;
             inherit (config.bootstrap.packages) nix;
           };
+          defaultText = "channels.cipkgs.ci-query";
+          visible = false;
         };
         ci-build = mkOption {
           type = types.package;
@@ -166,6 +194,8 @@ in {
             substituteAll $script $out
             chmod +x $out
           '';
+          defaultText = "channels.cipkgs.ci-build";
+          visible = false;
         };
       };
     };
@@ -208,15 +238,19 @@ in {
     export.env = {
       setup = mkOption {
         type = types.package;
+        readOnly = true;
       };
       bootstrap = mkOption {
         type = types.package;
+        readOnly = true;
       };
       test = mkOption {
         type = types.package;
+        readOnly = true;
       };
       shell = mkOption {
         type = types.package;
+        readOnly = true;
       };
     };
     cache = let
@@ -320,6 +354,7 @@ in {
     channels = {
       nixpkgs = mkOptionDefault { };
       ci = mkOptionDefault { };
+      nmd = mkOptionDefault { };
     };
     # TODO: cipkgs? dunno, this ends up in the environment... but maybe that's fine? you can't get away with building an env without using cipkgs!
     nixPath = mapAttrs (_: c: config.lib.ci.storePathFor c.path) config.channels;
@@ -336,7 +371,7 @@ in {
     lib = {
       channelUrls = channels.channelUrls {
         inherit (config.lib) nixpkgsChannels;
-        inherit (config.lib.ci) githubChannel;
+        inherit (config.lib.ci) githubChannel gitlabChannel;
         inherit (systems.elaborate config.nixpkgs.args.system) isDarwin;
       };
       nixpkgsChannels = channels.nixpkgsChannels {
@@ -345,7 +380,7 @@ in {
       };
       nixpkgsPathFor = mapAttrs (_: builtins.fetchTarball) (import ./lib/cipkgs.nix).nixpkgsFor;
       ci = {
-        inherit (channels) githubChannel;
+        inherit (channels) githubChannel gitlabChannel;
         import = config.lib.ci.nixPathImport config.nixPath;
         mkOverrideAdj = mkOverride: adj: content: let
           res = mkOverride content;

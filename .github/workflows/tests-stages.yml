@@ -1,0 +1,75 @@
+env:
+  CI_ALLOW_ROOT: '1'
+  CI_CLOSE_STDIN: '1'
+  CI_CONFIG: ./tests/stages.nix
+  CI_PLATFORM: gh-actions
+jobs:
+  another:
+    name: another
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.another.run.test
+        quiet: false
+  ci:
+    name: tests-stages
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-test
+      name: nix test
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.test
+        quiet: false
+  ci-check:
+    name: tests-stages check
+    runs-on: ubuntu-latest
+    steps:
+    - id: checkout
+      name: git clone
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - id: nix-install
+      name: nix install
+      uses: arcnmx/ci/actions/nix/install@modules
+    - id: ci-action-build
+      name: nix build ci.gh-actions.configFile
+      uses: arcnmx/ci/actions/nix/build@modules
+      with:
+        attrs: ci.gh-actions.configFile
+        out-link: .ci/workflow.yml
+    - id: ci-action-compare
+      name: gh-actions compare
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        args: -u .github/workflows/tests-stages.yml .ci/workflow.yml
+        attrs: nixpkgs.diffutils
+        command: diff
+name: tests-stages
+'on':
+- push
+- pull_request

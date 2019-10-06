@@ -15,15 +15,23 @@ in with lib; let
     if args.pkgs or null == true && pkgs'path.success then pkgs'path.value pkgs'args
     else if args.pkgs or null == null || args.pkgs or null == true then builtins.import nixpkgsPath pkgs'args
     else args.pkgs;
-  pwd = builtins.getEnv "PWD";
-  configPath = if builtins.typeOf configuration == "path" then configuration
-    else if hasPrefix "/" configuration then /. + configuration
-    else if pwd != "" then /. + "${pwd}/${toString configuration}"
+
+  impureConfig = if configuration != null then configuration else (import ./global.nix).defaultConfigPath;
+  impureConfigRoot = findFirst (v: v != "") null [ (builtins.getEnv "CI_CONFIG_ROOT") (builtins.getEnv "PWD") ];
+  relativePath = /. + (if impureConfigRoot != null && builtins.match "/.*" impureConfig == null
+    then "${impureConfigRoot}/${impureConfig}"
+    else impureConfig);
+  configPath =
+    if configuration == null && ! builtins.pathExists relativePath then warn "no CI configuration provided" ../tests/empty.nix
+    else if configuration == null then relativePath
+    else if builtins.typeOf configuration != "string" then configuration
+    else if hasPrefix "/" configuration || impureConfigRoot != null then relativePath
     else throw "could not find configuration ${toString configuration}";
+
   collectFailed = cfg:
-  map (x: x.message) (filter (x: !x.assertion) cfg.assertions);
+    map (x: x.message) (filter (x: !x.assertion) cfg.assertions);
   showWarnings = res: let
-    f = w: x: builtins.trace "warning: ${w}" x;
+    f = w: x: warn w x;
   in fold f res res.config.warnings;
   #nixosModulesPath = pkgs.path + "/nixos/modules";
 

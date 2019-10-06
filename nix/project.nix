@@ -1,4 +1,4 @@
-{ config, lib, modulesPath, configPath, rootConfigPath, ... }: with lib; let
+{ config, lib, modulesPath, configPath, rootConfigPath, libPath, ... }: with lib; let
   # NOTE: perhaps submodules are the wrong way to go about this, just use evalModules again
   # (mostly saying this because as far as I can tell, there's no way to pass specialArgs on to submodules? I imagine that could be hacked into lib/ though?)
   submodule = imports: types.submodule {
@@ -8,11 +8,14 @@
 
     config = {
       _module.args = {
-        inherit modulesPath rootConfigPath;
+        inherit modulesPath rootConfigPath libPath;
         configPath = mkOptionDefault configPath;
         parentConfigPath = configPath;
       };
     };
+  } // {
+    getSubOptions = _: {};
+    getSubModules = null;
   };
   jobModule = { name, ...}: {
     config = {
@@ -20,12 +23,15 @@
       inherit (config) stageId;
       jobId = name;
       jobs = mkForce { }; # jobs only go one level deep!
+      stages = mkForce { }; # jobs cannot contain stages!
     };
   };
   stageModule = { name, ...}: {
     config = {
       parentConfig = config;
       stageId = name;
+      name = mkOptionDefault name;
+      ci.gh-actions.enable = mkIf config.ci.gh-actions.enable (mkDefault true);
     };
   };
 in {
@@ -73,21 +79,26 @@ in {
       type = types.bool;
       default = false;
     };
-    jobs = mkOption {
-      type = types.attrsOf (submodule [ configPath jobModule ]);
+    jobs = let
+      type = submodule [ configPath jobModule ];
+    in mkOption {
+      type = types.attrsOf type;
       default = { };
+      visible = config.jobId != null;
     };
     stages = let
-      type = types.coercedTo types.path (configPath: {
+      type = types.coercedTo types.path (configPath: { ... }: {
         imports = [ configPath ];
         config._module.args = {
-          inherit configPath;
+          #inherit configPath;
+          stageConfigPath = configPath;
         };
       }) (submodule [ stageModule ]);
     in mkOption {
       type = types.attrsOf type;
       # TODO: coercedTo types.path
       default = { };
+      visible = config.jobId != null;
     };
     project = {
       exec = mkOption {
@@ -108,7 +119,7 @@ in {
   };
   config = {
     export.job = mapAttrs (_: s: s.export) config.jobs;
-    export.stage = mapAttrs (_: s: s.export) config.stage;
+    export.stage = mapAttrs (_: s: s.export) config.stages;
     lib.ci = {
       inherit (import ./lib/scope.nix { }) nixPathImport;
     };

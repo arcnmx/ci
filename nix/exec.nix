@@ -14,6 +14,13 @@ in {
       type = types.enum [ "build" "quiet" "silent" ];
       default = "build";
     };
+    list = {
+      run = mkOption {
+        type = types.attrsOf (types.nullOr types.str);
+        default = { };
+        internal = true;
+      };
+    };
   };
   options.export = {
     environment = mkOption {
@@ -28,11 +35,17 @@ in {
     test = mkOption {
       type = types.unspecified;
     };
+    help = mkOption {
+      type = types.unspecified;
+    };
     exec = mkOption {
       type = types.attrsOf types.unspecified;
     };
     run = mkOption {
       type = types.attrsOf types.unspecified;
+    };
+    list = mkOption {
+      type = types.package;
     };
   };
 
@@ -137,7 +150,12 @@ in {
       buildCommand = ''
         mkdir -p $out/nix-support
         echo $package $wrapper > $out/nix-support/propagated-user-env-packages
+        if [[ -e $package/bin ]]; then
+          ln -s $package/bin $out/bin
+        fi
       '';
+      meta = package.meta or {};
+      passthru = package.passthru or {};
     };
     drvOf = drv: builtins.unsafeDiscardStringContext drv.drvPath;
     buildDrvs = drvs: "${nix}/bin/nix-build --no-out-link ${builtins.concatStringsSep " " (map drvOf drvs)}";
@@ -210,6 +228,19 @@ in {
     inherit (import ./lib/build { inherit lib config; }) buildScriptFor;
   };
 
+  config.exec.list = {
+    run = let
+      stageList = key: stage: mapAttrsToList (k: v: nameValuePair "${key}.${k}" v) stage.exec.list.run;
+    in {
+      # TODO: mention sub-test attrs, also list jobs/stages on their own...
+      test = config.export.test.meta.description or null;
+      list = config.export.list.meta.description or null;
+      help = config.export.help.meta.description or null;
+    } // mapAttrs' (k: v: nameValuePair "run.${k}" v.meta.description or null) config.export.run
+      // listToAttrs (concatLists (mapAttrsToList (k: stageList "job.${k}") config.jobs))
+      // listToAttrs (concatLists (mapAttrsToList (k: stageList "stage.${k}") config.stages));
+  };
+
   config.export = {
     environment = config.export.env.bootstrap;
     source = ''
@@ -239,11 +270,45 @@ in {
         ci_env_impure
       '';
     };
-    inherit (config.export.run) test;
+    inherit (config.export.run) test list help;
     run = {
-      setup = config.lib.ci.nixRunWrapper "ci-setup" config.export.env.setup;
-      bootstrap = config.lib.ci.nixRunWrapper "ci-setup" config.export.env.bootstrap;
-      run = config.lib.ci.nixRunWrapper "ci-run" config.export.env.bootstrap;
+      setup = (config.lib.ci.nixRunWrapper "ci-setup" config.export.env.setup).overrideAttrs (old: {
+        meta = old.meta or {} // {
+          description = "build and setup the bootstrap environment";
+        };
+      });
+      bootstrap = (config.lib.ci.nixRunWrapper "ci-setup" config.export.env.bootstrap).overrideAttrs (old: {
+        meta = old.meta or {} // {
+          description = "build and setup the test environment";
+        };
+      });
+      run = (config.lib.ci.nixRunWrapper "ci-run" config.export.env.bootstrap).overrideAttrs (old: {
+        meta = old.meta or {} // {
+          description = "run a command in the test environment";
+        };
+      });
+      help = (config.lib.ci.nixRunWrapper "ci-help" config.export.doc.open).overrideAttrs (old: {
+        meta = old.meta or {} // {
+          description = "open the manual";
+        };
+      });
+      list = let
+        list = (channels.cipkgs.writeShellScriptBin "ci-list" ''
+          for item in ${toString (mapAttrsToList (k: v: "\"${k}=${toString v}\"") config.exec.list.run)}; do
+            key=''${item%%=*}
+            desc=''${item#*=}
+            if [[ -n $desc ]]; then
+              echo "$key: $desc"
+            else
+              echo "$key"
+            fi
+          done
+        '').overrideAttrs (old: {
+          meta = old.meta or {} // {
+            description = "lists all commands that are available";
+          };
+        });
+      in config.lib.ci.nixRunWrapper "ci-list" list;
     } // {
       test = config.lib.ci.nixRunWrapper "ci-build" (buildScriptFor config.tasks) // {
         # TODO: turn this into a megatask using host-exec so it can all run in parallel? sshd ports though :(

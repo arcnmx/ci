@@ -9,6 +9,16 @@
       version = config.ci.version;
       path = "actions/${name}";
     };
+  subjobs = configs: (filterAttrs (_: v: v != null) (mapAttrs
+    (k: configs: let
+      job = configs.gh-actions.jobs.${configs.id} or null;
+      job' = job // {
+        env = filterAttrs (k: v: config.gh-actions.env.${k} or null != v) (
+          configs.gh-actions.env // job.env or {}
+        );
+      };
+    in if job == null then null else job') configs
+  ));
   ciJob = {
     id
   , name ? null
@@ -138,12 +148,8 @@ in {
           };
         };
       }))
-      (filterAttrs (_: v: v != null) (mapAttrs (k: config:
-        config.gh-actions.jobs.${config.id} or null
-      ) config.jobs))
-      (filterAttrs (_: v: v != null) (mapAttrs (k: config:
-        config.gh-actions.jobs.${config.id} or null
-      ) config.stages))
+      (subjobs config.jobs)
+      (subjobs config.stages)
       (mkIf (config.jobId == null && config.ci.gh-actions.path != null) (ciJob {
         id = "${config.id}-check";
         name = mkDefault "${cfg.name} check";
@@ -170,7 +176,13 @@ in {
       }))
     ];
   };
-  config.export.run.gh-actions-generate = mkIf (cfg.enable && cfg.path != null) (config.lib.ci.nixRunWrapper "gh-actions-generate" (channels.cipkgs.writeShellScriptBin "gh-actions-generate" ''
-    install -Dm0644 ${config.export.gh-actions.configFile} ${cfg.path}
-  ''));
+  config.export.run.gh-actions-generate = let
+    gen = (channels.cipkgs.writeShellScriptBin "gh-actions-generate" ''
+      install -Dm0644 ${config.export.gh-actions.configFile} ${cfg.path}
+    '').overrideAttrs (old: {
+      meta = old.meta or {} // {
+        description = "generate or update the GitHub Actions workflow file";
+      };
+    });
+  in mkIf (cfg.enable && cfg.path != null) (config.lib.ci.nixRunWrapper "gh-actions-generate" gen);
 }

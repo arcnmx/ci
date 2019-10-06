@@ -1,0 +1,16 @@
+<reference xmlns="http://docbook.org/ns/docbook"
+           xmlns:xlink="http://www.w3.org/1999/xlink"
+           xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Reference Pages</title>
+  <!--<xi:include href="man-configuration.xml" />-->
+  <refentry>
+    <refnamediv>
+      <refname><filename>ci.nix</filename></refname>
+      <refpurpose>CI configuration</refpurpose>
+    </refnamediv>
+    <refsection>
+      <title>Description</title>
+      <para>TBD</para>
+    </refsection>
+  </refentry>
+</reference>

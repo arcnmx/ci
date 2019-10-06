@@ -1,0 +1,143 @@
+<book xmlns="http://docbook.org/ns/docbook"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      version="5.0"
+      xml:id="book-ci-manual">
+  <info>
+    <title>CI/nix Manual</title>
+  </info>
+  <preface>
+    <title>Preface</title>
+    <para>
+      CI is a configurable continuous integration and testing system built on top of nix and the
+      NixOS module system. Its aim is to be flexible in order to meet the many needs of the various
+      technologies and cloud providers in use with CI today, while being simple and self-contained
+      so that all actions can be performed on a local machine. Build results should be reproducible
+      so if it works on your machine then it will work on the CI server as well!
+
+      (this is currently all very much WIP right now, but please do <link xlink:href="https://github.com/arcnmx/ci/issues">file issues</link> if you actually use it and have questions or concerns!)
+    </para>
+  </preface>
+  <chapter xml:id="ch-setup">
+    <title>Setup</title>
+    <para>
+      To start, it's covenient to have the <literal>ci</literal> channel available to nix on your
+      system:
+    </para>
+    <screen>
+      <prompt>$</prompt> <userinput>export NIX_PATH=$NIX_PATH:ci=https://github.com/arcnmx/ci/archive/master.tar.gz</userinput>
+    </screen>
+    <para>
+      This allows the channel to be easily referred to while testing locally, like so:
+    </para>
+    <screen>
+      <prompt>$</prompt> <userinput>nix run ci.help</userinput>
+      <prompt>$</prompt> <userinput>nix run --arg config '&lt;ci/examples/ci.nix&gt;' ci.test</userinput>
+      <computeroutput>✔️ hello, world ok</computeroutput>
+    </screen>
+    <para>
+      You can also manage it with <literal>nix-channel</literal>, though due to a nix limitation you
+      are still required to include the channel name in <literal>NIX_PATH</literal> in some way:
+    </para>
+    <screen>
+      <prompt>$</prompt> <userinput>nix-channel --add https://github.com/arcnmx/ci/archive/master.tar.gz ci</userinput>
+      <prompt>$</prompt> <userinput>nix-channel --update</userinput>
+      <prompt>$</prompt> <userinput>export NIX_PATH=$NIX_PATH:ci=/xxx</userinput>
+    </screen>
+  </chapter>
+  <chapter xml:id="ch-commands">
+    <title>Commands</title>
+    <para>
+      Global and CI commands can be found with the list command:
+    </para>
+    <screen>
+      <prompt>$</prompt> <userinput>nix run ci.list</userinput>
+      <computeroutput>list</computeroutput>
+      <computeroutput>run.gh-actions-generate</computeroutput>
+      <computeroutput>run.test.example</computeroutput>
+      <computeroutput>test</computeroutput>
+    </screen>
+    <para>
+      Commands under a job or stage sub-configuration can be accessed by name via
+      <literal>ci.job.jobName.run</literal> and <literal>ci.stage.name.run</literal> respectively.
+    </para>
+  </chapter>
+  <chapter xml:id="ch-examples">
+    <title>Examples</title>
+    <para>
+      Documentation is a bit sparse right now, but a few examples are currently available:
+    </para>
+    <itemizedlist>
+      <listitem><para>
+        <link xlink:href="https://github.com/arcnmx/ci/blob/modules/examples/ci.nix"> Example</link>
+      </para></listitem>
+      <listitem><para>
+        <link xlink:href="https://github.com/arcnmx/ci/tree/modules/tests">CI Tests</link>
+      </para></listitem>
+      <listitem><para>
+        <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/ci/ci.nix">rust</link> channel tests
+      </para></listitem>
+    </itemizedlist>
+  </chapter>
+  <chapter xml:id="ch-configuration">
+    <title>Configuration</title>
+    <section xml:id="sec-configuration-options">
+      <title>Options</title>
+      <para>
+        <xref linkend="ch-options"/> lists all the options available for customizing your CI
+        process!
+      </para>
+    </section>
+    <section xml:id="sec-configuration-env">
+      <title>Environment</title>
+      <para>
+        <xref linkend="ch-env"/> documents the environment variables provided by and used for
+        configuring the CI. It may be convenient to set some of these for a project in the relevant
+        <literal>shell.nix</literal> or <literal>.direnv</literal> files.
+      </para>
+    </section>
+  </chapter>
+  <appendix xml:id="ch-options">
+    <title>Configuration Options</title>
+    <xi:include href="./nmd-result/ci-options.xml" />
+  </appendix>
+  <appendix xml:id="ch-env">
+    <title>Environment Variables</title>
+    <section xml:id="sec-env-input">
+      <title>Input</title>
+      <para>
+        The following environment variables can be used to tweak CI behaviour and configuration. Some
+        of these may be ignored when <literal>config.environment.impure = false</literal>.
+      </para>
+      <itemizedlist>
+        <listitem><para>
+          <literal>CI_CONFIG</literal> points to your CI configuration, if not provided via <literal>--arg config</literal>.
+        </para></listitem>
+        <listitem><para>
+          <literal>CI_CONFIG_ROOT</literal> points to your project root. This is used to resolve relative <literal>CI_CONFIG</literal> paths when generating cloud service configurations.
+        </para></listitem>
+        <listitem><para>
+          <literal>CI_PLATFORM</literal> indicates what environment the tests are currently running under. This should generally only be set when configuring a CI server, but the special <literal>impure</literal> value can be used to instruct the tests to use nixpkgs from your <literal>NIX_PATH</literal> environment. This may be useful when testing local changes or to avoid nix store bloat from using pinned channels.
+          <!-- TODO: list currently supported values: impure, gh-actions, azure-pipelines -->
+        </para></listitem>
+        <listitem><para>
+          TBD: <literal>CI_ALLOW_ROOT</literal>, <literal>CI_CLOSE_STDIN</literal>
+        </para></listitem>
+      </itemizedlist>
+    </section>
+    <section xml:id="sec-env-output">
+      <title>Output</title>
+      <para>
+        Environment variables are also used to relay information about the build environment to the configuration, and can be accessed via <literal>builtins.getEnv</literal>.
+      </para>
+      <itemizedlist>
+        <listitem><para>
+          <literal>CI_ROOT</literal> points to the path of the CI channel currently being used for evaluation.
+        </para></listitem>
+        <listitem><para>
+          TBD: <literal>CI_ENV</literal>, <literal>CI_PATH</literal>
+        </para></listitem>
+      </itemizedlist>
+    </section>
+  </appendix>
+</book>

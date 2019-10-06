@@ -57,6 +57,7 @@
       ${config.bootstrap.packages.coreutils}/bin/install -Dm0755 -t ''${outputs[out]}/bin ci-build
       ${config.bootstrap.packages.coreutils}/bin/install -D .attrs.sh $attrsPath
     '';
+    meta.description = "build and test tasks${optionalString (tasks != {}) " - ${toString (attrNames tasks)}"}";
   } // scriptData tasks) "";
 in {
   inherit buildScriptFor;

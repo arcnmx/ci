@@ -12,6 +12,10 @@ lib: with lib; rec {
       url = mkOption {
         type = types.nullOr types.str;
       };
+      sha256 = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+      };
       path = mkOption {
         type = types.either types.str types.path;
       };
@@ -77,10 +81,12 @@ lib: with lib; rec {
         (mkIf (config.url != null) (mkDefault (
           if hasPrefix builtins.storeDir (toString config.url) then /. + builtins.storePath config.url
           else if hasPrefix "/" (toString config.url) then toString config.url
-          else builtins.fetchTarball {
+          else builtins.fetchTarball ({
             name = "source"; # or config.name?
             inherit (config) url;
-          }
+          } // optionalAttrs (config.sha256 != null) {
+            inherit (config) sha256;
+          })
         )))
       ] ++ optional (defaultConfig ? ${config.name}.path) defaultConfig.${config.name}.path);
 
@@ -176,7 +182,8 @@ lib: with lib; rec {
   };
   # TODO: think about how this will work with flakes. want to expand this to include overlays!
   githubChannel = slug: c: "https://github.com/${slug}/archive/${c}.tar.gz";
-  channelUrls = { nixpkgsChannels, githubChannel, isDarwin }: {
+  gitlabChannel = slug: c: "https://gitlab.com/${slug}/-/archive/${c}/${baseNameOf slug}-${c}.tar.gz";
+  channelUrls = { nixpkgsChannels, githubChannel, gitlabChannel, isDarwin }: {
     # TODO: if nixpkgs is a git ref use githubChannel instead
     nixpkgs = c: let
       c' = nixpkgsChannels.${c} or c;
@@ -196,5 +203,6 @@ lib: with lib; rec {
     nur = githubChannel "nix-community/NUR";
     arc = githubChannel "arcnmx/nixexprs";
     ci = githubChannel "arcnmx/ci";
+    nmd = gitlabChannel "rycee/nmd";
   };
 }

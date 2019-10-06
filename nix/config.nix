@@ -23,4 +23,23 @@ in {
         else (import ./global.nix).defaultConfigPath;
     };
   };
+
+  options.export.doc = {
+    json = mkOption {
+      type = types.unspecified;
+    };
+    manPages = mkOption {
+      type = types.package;
+    };
+    manual = mkOption {
+      type = types.package;
+    };
+    open = mkOption {
+      type = types.package;
+    };
+  };
+
+  config.export.doc = {
+    inherit (config.bootstrap.pkgs.ci.doc) manPages manual open json;
+  };
 }

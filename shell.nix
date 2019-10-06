@@ -6,5 +6,11 @@
 
   shellHook = ''
     export NIX_PATH="ci=$CI_ROOT:$NIX_PATH"
+
+    gh-actions-generate() {
+      for f in $CI_CONFIG_ROOT/tests/* $CI_CONFIG_ROOT/examples/ci.nix; do
+        nix run --arg config $f ci.run.gh-actions-generate
+      done
+    }
   '';
 }
