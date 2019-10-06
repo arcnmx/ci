@@ -13,7 +13,7 @@
     drvsSkipped = map (t: t.drv) tasks'skipped
       ++ concatMap (t: t.internal.inputs.skipped) tasks'build
       ++ concatMap (t: t.internal.inputs.all) tasks'skipped;
-    drvs = map (t: t.drv) tasks'build ++ concatMap (task: task.internal.inputs.valid) (attrValues tasks);
+    drvs = map (t: t.drv) tasks'build ++ concatMap (task: (with task.internal.inputs; wrappedImpure ++ pure)) (attrValues tasks);
     drvAttrs = fn: drvs: listToAttrs (map (drv: nameValuePair (drvOf drv) (fn drv)) drvs);
     drvCachePaths = drv: let
       inputs = cacheInputsOf drv;
@@ -37,7 +37,7 @@
       (filter (drv: drv.ci.warn or false)
         drvs);
     drvCache = drvAttrs drvCachePaths drvs;
-    drvInputs = mapAttrs' (_: t: nameValuePair (drvOf t.drv) (concatStringsSep " " (map drvOf t.internal.inputs.all))) tasks;
+    drvInputs = mapAttrs' (_: t: nameValuePair (drvOf t.drv) (concatStringsSep " " (map drvOf (with t.internal.inputs; wrappedImpure ++ pure ++ skipped)))) tasks;
     drvName = drvAttrs (drv: drv.meta.name or drv.name) (drvs ++ drvsSkipped);
   };
   # TODO: manual derivation rather than using stdenv?

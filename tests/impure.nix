@@ -24,7 +24,7 @@
       name = "impure-env";
       someVar = "hello";
       command = ''
-        [[ $somevar = hello ]]
+        [[ $someVar = hello ]]
       '';
       displayName = "impure environment variable";
       impure = true;

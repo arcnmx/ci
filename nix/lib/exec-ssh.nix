@@ -75,7 +75,7 @@ in {
         mkdir -p $out/$prefix $out/bin
         ssh-keygen -q -N "" -t ed25519 -f $out/$prefix/sshd_key
         for command in $commands; do
-          IFS=$'\n' commandExec=($(jq -er ".\"$command\" | .[]" $commandsExec)) # TODO: support quoting these?
+          IFS=$'\n' commandExec=($(jq -er ".\"$command\" | .[]" $commandsExecPath)) # TODO: support quoting these?
           commandKey=$out/$prefix/$(basename $command)
           ssh-keygen -q -N "" -t ed25519 -f $commandKey
           echo "command=\"''${commandExec[*]}\" $(cat $commandKey.pub)"

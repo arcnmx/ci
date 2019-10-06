@@ -102,6 +102,10 @@
           type = types.listOf types.package;
           internal = true;
         };
+        pure = mkOption {
+          type = types.listOf types.package;
+          internal = true;
+        };
         wrapped = mkOption {
           type = types.listOf types.package;
           internal = true;
@@ -126,6 +130,7 @@
         valid = partitioned.right;
         tests = concatMap (d: map (mapTest d) d.ci.tests or []) config.internal.inputs.valid;
         impure = partitioned'impure.right;
+        pure = partitioned'impure.wrong;
         wrapped = map pkgs.ci.wrapper partitioned'impure.wrong;
         wrappedImpure = map executor.ci.executor.for config.internal.inputs.impure;
         # TODO: possibly want to be able to filter out warn'd inputs so task can still run when they fail?
