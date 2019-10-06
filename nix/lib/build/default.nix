@@ -7,7 +7,7 @@
     in
       if drv.ci.omit or false != false || ! drvPath.success then ph
       else drvPath.value;
-    tasks'partition = partition (t: t.skip) (attrValues tasks);
+    tasks'partition = partition (t: t.skip != false) (attrValues tasks);
     tasks'skipped = tasks'partition.right;
     tasks'build = tasks'partition.wrong;
     drvsSkipped = map (t: t.drv) tasks'skipped

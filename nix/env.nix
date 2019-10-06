@@ -7,6 +7,7 @@
   };
   channelType = channels.channelTypeCoerced (channels.channelType (channelArgs // {
     inherit (config) channels;
+    specialImport = config._module.args.import;
     ciOverlayArgs = {
       inherit config;
     };
@@ -36,6 +37,7 @@
       };
       inherit (config.bootstrap) nixpkgs;
     };
+    specialImport = throw "nixPathImport unsupported";
     isNixpkgs = true;
     ciOverlayArgs = {
       inherit config;

@@ -1,5 +1,5 @@
 lib: with lib; rec {
-  channelType = { channelUrls, channels, /*system,*/ bootpkgs, ciOverlayArgs, defaultConfig, isNixpkgs ? false, pkgs ? channels.nixpkgs.import }: types.submodule ({ name, config, ... }: {
+  channelType = { channelUrls, channels, /*system,*/ bootpkgs, ciOverlayArgs, defaultConfig, isNixpkgs ? false, pkgs ? channels.nixpkgs.import, specialImport }: types.submodule ({ name, config, ... }: {
     options = {
       enable = mkEnableOption "channel" // { default = true; };
       name = mkOption {
@@ -29,6 +29,10 @@ lib: with lib; rec {
       import = mkOption {
         type = types.unspecified;
         internal = true;
+      };
+      nixPathImport = mkOption {
+        type = types.bool;
+        default = false;
       };
     };
     config = {
@@ -92,7 +96,7 @@ lib: with lib; rec {
         file = if config.file != null
           then config.path + "/${config.file}"
           else config.path;
-        channel = import file;
+        channel = (if config.nixPathImport then specialImport else import) file;
       in channel args);
     };
   });

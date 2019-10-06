@@ -115,7 +115,7 @@
     config = {
       internal.inputs = let
         partitioned = partition isValid config.internal.inputs.all;
-        inputs = mapInput config.cache (config.internal.inputs.valid ++ config.internal.inputs.tests);
+        inputs = map (mapInput config.cache) (config.internal.inputs.valid ++ config.internal.inputs.tests);
         partitioned'impure = partition (d: d ? ci.exec) inputs;
         mapTest = drv: test: if isFunction test
           then test drv
