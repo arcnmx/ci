@@ -76,7 +76,7 @@
         <link xlink:href="https://github.com/arcnmx/ci/tree/modules/tests">CI Tests</link>
       </para></listitem>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/ci/ci.nix">rust</link> channel tests
+        <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/ci/ci.nix">rust channel tests</link>
       </para></listitem>
     </itemizedlist>
   </chapter>
