@@ -43,6 +43,7 @@ self: super: let
     ];
     argVars = attrNames args' ++ environment;
     commandPath = "${prefix}/run-test";
+    # TODO: nativeBuildInputs should work with impure commands!
     command' = if impure == true then ''
       mkdir -p $out/${prefix}
       {
