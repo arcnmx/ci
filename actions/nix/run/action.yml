@@ -22,6 +22,9 @@ inputs:
   stdout:
     description: Save stdout to the specified path
     default: ""
+  stdin:
+    description: Read stdin from the specified path
+    default: ""
   ignore-exit-code:
     description: Ignore command failures
     default: false

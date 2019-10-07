@@ -9,6 +9,7 @@ const quiet = core.getInput('quiet') !== 'false';
 const nix_path = core.getInput('nix-path').split(':').filter(a => a !== '');
 const ignore_exit = core.getInput('ignore-exit-code') !== 'false';
 const stdout_path = core.getInput('stdout');
+const stdin_path = core.getInput('stdin');
 let command = core.getInput('command');
 let cargs = core.getInput('args').split(' ');
 let attrs = core.getInput('attrs').split(' ');
@@ -42,6 +43,17 @@ if (stdout_path === '') {
   });
 }
 
+let stdin;
+if (stdin_path === '') {
+  stdin = 'inherit';
+} else {
+  const fd = fs.openSync(stdin_path, 'r');
+  stdin = fs.createReadStream(stdin_path, {
+    encoding: 'binary',
+    fd: fd,
+  });
+}
+
 const args = [
   'run',
 ].concat(quiet ? [] : ['-L', '--show-trace'])
@@ -58,7 +70,7 @@ const builder = spawn('nix', args
   }),
   windowsHide: true,
   stdio: [
-    'inherit', // TODO: option to provide stdin?
+    stdin,
     stdout,
     'inherit',
   ],
