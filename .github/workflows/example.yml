@@ -90,10 +90,6 @@ jobs:
         command: diff
   docs:
     env:
-      GITHUB_EVENT_NAME: ${{ github.event_name }}
-      GITHUB_REF: ${{ github.ref }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      GITHUB_SHA: ${{ github.sha }}
       GIT_DEPLOY_KEY: ${{ secrets.deploy_key }}
     name: docs
     runs-on: ubuntu-latest

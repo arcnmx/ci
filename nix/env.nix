@@ -52,15 +52,9 @@
       # TODO: defaults in url + sha256 instead? doesn't really matter...
     };
   }));
-  envOrNull = envOr null;
-  envOr = fallback: key: let
-    value = builtins.getEnv key;
-  in if value == "" then fallback else value;
-  isEnvSet = key: if config.environment.impure
-    then envOrNull key != null
-    else false;
-  channelsFromEnv = trans: prefix: filterAttrs (_: v: v != "") (
-    listToAttrs (map (ch: nameValuePair ch (builtins.getEnv "${prefix}${trans ch}")) (attrNames config.lib.channelUrls))
+  inherit (import ./lib/env.nix { inherit lib config; }) env envIsSet;
+  channelsFromEnv = trans: prefix: filterAttrs (_: v: v != null) (
+    listToAttrs (map (ch: nameValuePair ch (env.get "${prefix}${trans ch}")) (attrNames config.lib.channelUrls))
   );
   screamingSnakeCase = s: builtins.replaceStrings [ "-" ] [ "_" ] (toUpper s);
   nixosCache = "https://cache.nixos.org/";
@@ -221,11 +215,13 @@ in {
       };
       allowRoot = mkOption {
         type = types.bool;
-        default = isEnvSet "CI_ALLOW_ROOT";
+        default = envIsSet "CI_ALLOW_ROOT";
+        defaultText = ''getEnv "CI_ALLOW_ROOT" != ""'';
       };
       closeStdin = mkOption {
         type = types.bool;
-        default = isEnvSet "CI_CLOSE_STDIN";
+        default = envIsSet "CI_CLOSE_STDIN";
+        defaultText = ''getEnv "CI_CLOSE_STDIN" != ""'';
       };
       glibcLocales = mkOption {
         type = types.listOf types.package;
@@ -288,7 +284,7 @@ in {
           };
           signingKey = mkOption {
             type = types.nullOr types.str;
-            default = envOrNull "CACHIX_SIGNING_KEY";
+            default = env.get "CACHIX_SIGNING_KEY";
           };
         };
       });
@@ -355,9 +351,9 @@ in {
         packages = old.packages ++ builtins.attrValues config.environment.shell;
       });
     };
-    cache.cachix = optionalAttrs (isEnvSet "CACHIX_CACHE") {
+    cache.cachix = optionalAttrs (envIsSet "CACHIX_CACHE") {
       ${cachixCache} = {
-        signingKey = envOrNull "CACHIX_SIGNING_KEY";
+        signingKey = env.get "CACHIX_SIGNING_KEY";
       };
     };
     channels = {
@@ -389,6 +385,7 @@ in {
       };
       nixpkgsPathFor = mapAttrs (_: builtins.fetchTarball) (import ./lib/cipkgs.nix).nixpkgsFor;
       ci = {
+        inherit env;
         inherit (channels) githubChannel gitlabChannel;
         import = config.lib.ci.nixPathImport config.nixPath;
         mkOverrideAdj = mkOverride: adj: content: let
@@ -406,7 +403,7 @@ in {
     };
 
     _module.args = {
-      inherit (config.lib.ci) import;
+      inherit (config.lib.ci) import env;
       channels = mapAttrs (_: c: c.import) config.channels // {
         cipkgs = config.nixpkgs.import;
       };
