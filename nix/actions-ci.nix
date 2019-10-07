@@ -106,7 +106,7 @@ in {
     enable = true;
     env = mapAttrs (_: mkDefault) {
       CI_ALLOW_ROOT = "1";
-      CI_CLOSE_STDIN = "1"; # TODO: is this necessary on actions or just azure pipelines?
+      #CI_CLOSE_STDIN = "1"; # TODO: is this necessary on actions or just azure pipelines?
       CI_PLATFORM = "gh-actions";
       CI_CONFIG = config.ci.configPath;
     };

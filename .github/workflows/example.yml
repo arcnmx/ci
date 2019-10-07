@@ -1,6 +1,5 @@
 env:
   CI_ALLOW_ROOT: '1'
-  CI_CLOSE_STDIN: '1'
   CI_CONFIG: ./examples/ci.nix
   CI_PLATFORM: gh-actions
 jobs:
