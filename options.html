@@ -30,7 +30,7 @@
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/env.nix#blob-path" target="_top">
                     &lt;ci/env.nix&gt;
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-cache.cachix._name_.signingKey"></a><a class="term" href="options.html#opt-cache.cachix._name_.signingKey"><code class="option">cache.cachix.&lt;name&gt;.signingKey</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or string</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
-        "5vT9T9b5OHn+6Eo5CE4RuBkcxZkM1fXJUkDCNec5bXM82eRoPuisJCGlfr3wREdnkyu10Yr8Npyms/7th796ew=="
+        null
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/env.nix#blob-path" target="_top">
                     &lt;ci/env.nix&gt;
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-cache.substituters"></a><a class="term" href="options.html#opt-cache.substituters"><code class="option">cache.substituters</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> attribute set of submodules</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
@@ -373,7 +373,7 @@
         "-xeu {0} scriptArg"
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.step._name_.timeout-minutes"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.step._name_.timeout-minutes"><code class="option">gh-actions.jobs.&lt;name&gt;.step.&lt;name&gt;.timeout-minutes</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or signed integer</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.step._name_.timeout-minutes"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.step._name_.timeout-minutes"><code class="option">gh-actions.jobs.&lt;name&gt;.step.&lt;name&gt;.timeout-minutes</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or positive integer, meaning &gt;0</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
         null
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
@@ -405,7 +405,7 @@
         "v1"
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.step._name_.with"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.step._name_.with"><code class="option">gh-actions.jobs.&lt;name&gt;.step.&lt;name&gt;.with</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> attribute set of unspecifieds</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.step._name_.with"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.step._name_.with"><code class="option">gh-actions.jobs.&lt;name&gt;.step.&lt;name&gt;.with</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> attribute set of null or boolean or string or signed integer or floating point numbers</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
         
         {
         
@@ -449,8 +449,8 @@
         null
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.steps._.order"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.steps._.order"><code class="option">gh-actions.jobs.&lt;name&gt;.steps.*.order</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> signed integer</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
-        1000
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.steps._.order"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.steps._.order"><code class="option">gh-actions.jobs.&lt;name&gt;.steps.*.order</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or signed integer</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+        null
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.steps._.run"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.steps._.run"><code class="option">gh-actions.jobs.&lt;name&gt;.steps.*.run</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or string</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
@@ -469,7 +469,7 @@
         "-xeu {0} scriptArg"
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.steps._.timeout-minutes"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.steps._.timeout-minutes"><code class="option">gh-actions.jobs.&lt;name&gt;.steps.*.timeout-minutes</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or signed integer</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.steps._.timeout-minutes"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.steps._.timeout-minutes"><code class="option">gh-actions.jobs.&lt;name&gt;.steps.*.timeout-minutes</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or positive integer, meaning &gt;0</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
         null
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
@@ -501,7 +501,7 @@
         "v1"
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.steps._.with"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.steps._.with"><code class="option">gh-actions.jobs.&lt;name&gt;.steps.*.with</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> attribute set of unspecifieds</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.steps._.with"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.steps._.with"><code class="option">gh-actions.jobs.&lt;name&gt;.steps.*.with</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> attribute set of null or boolean or string or signed integer or floating point numbers</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
         
         {
         
@@ -525,11 +525,11 @@
     
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.strategy.max-parallel"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.strategy.max-parallel"><code class="option">gh-actions.jobs.&lt;name&gt;.strategy.max-parallel</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or signed integer</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.strategy.max-parallel"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.strategy.max-parallel"><code class="option">gh-actions.jobs.&lt;name&gt;.strategy.max-parallel</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or positive integer, meaning &gt;0</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
         null
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.timeout-minutes"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.timeout-minutes"><code class="option">gh-actions.jobs.&lt;name&gt;.timeout-minutes</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> signed integer</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-gh-actions.jobs._name_.timeout-minutes"></a><a class="term" href="options.html#opt-gh-actions.jobs._name_.timeout-minutes"><code class="option">gh-actions.jobs.&lt;name&gt;.timeout-minutes</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> positive integer, meaning &gt;0</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
         360
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/actions.nix#blob-path" target="_top">
                     &lt;ci/actions.nix&gt;
@@ -727,7 +727,7 @@
         false
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/tasks.nix#blob-path" target="_top">
                     &lt;ci/tasks.nix&gt;
-                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-tasks._name_.timeoutSeconds"></a><a class="term" href="options.html#opt-tasks._name_.timeoutSeconds"><code class="option">tasks.&lt;name&gt;.timeoutSeconds</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or signed integer</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
+                </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-tasks._name_.timeoutSeconds"></a><a class="term" href="options.html#opt-tasks._name_.timeoutSeconds"><code class="option">tasks.&lt;name&gt;.timeoutSeconds</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> null or positive integer, meaning &gt;0</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
         null
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/tasks.nix#blob-path" target="_top">
                     &lt;ci/tasks.nix&gt;
