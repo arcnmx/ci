@@ -28,7 +28,7 @@
       };
       nmd = {
         version = config.lib.ci.mkOptionDefault1 "b437898c2b137c39d9c5f9a1cf62ec630f14d9fc";
-        sha256 = config.lib.ci.mkOptionDefault1 fakeSha256;
+        sha256 = config.lib.ci.mkOptionDefault1 "18j1nh53cfpjpdiwn99x9kqpvr0s7hwngyc0a93xf4sg88ww93lq";
         args = {
           pkgs = mkOptionDefault config.bootstrap.pkgs;
           inherit lib;

@@ -14,7 +14,6 @@ lib: with lib; rec {
       };
       sha256 = mkOption {
         type = types.nullOr types.str;
-        default = null;
       };
       path = mkOption {
         type = types.either types.str types.path;
@@ -41,6 +40,7 @@ lib: with lib; rec {
     };
     config = {
       version = defaultConfig.${config.name}.version or (mkOptionDefault null);
+      sha256 = defaultConfig.${config.name}.sha256 or (mkOptionDefault null);
 
       args = defaultConfig.${config.name}.args or ({
         nur = {
