@@ -118,7 +118,7 @@
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-doc.open"></a><a class="term" href="options.html#opt-doc.open"><code class="option">doc.open</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> package</p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/config.nix#blob-path" target="_top">
                     &lt;ci/config.nix&gt;
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-environment.allowRoot"></a><a class="term" href="options.html#opt-environment.allowRoot"><code class="option">environment.allowRoot</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> boolean</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
-        true
+        ''getEnv "CI_ALLOW_ROOT" != ""''
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/env.nix#blob-path" target="_top">
                     &lt;ci/env.nix&gt;
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-environment.bootstrap"></a><a class="term" href="options.html#opt-environment.bootstrap"><code class="option">environment.bootstrap</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> attribute set of packages</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
@@ -126,7 +126,7 @@
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/env.nix#blob-path" target="_top">
                     &lt;ci/env.nix&gt;
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-environment.closeStdin"></a><a class="term" href="options.html#opt-environment.closeStdin"><code class="option">environment.closeStdin</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> boolean</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
-        true
+        ''getEnv "CI_CLOSE_STDIN" != ""''
       </code></p><p><span class="emphasis"><em>Declared by:</em></span></p><table border="0" summary="Simple list" class="simplelist"><tr><td><code class="filename"><a class="filename" href="https://github.com/arcnmx/ci/blob/modules/nix/env.nix#blob-path" target="_top">
                     &lt;ci/env.nix&gt;
                 </a></code></td></tr></table></dd><dt><span class="term"><a id="opt-environment.glibcLocales"></a><a class="term" href="options.html#opt-environment.glibcLocales"><code class="option">environment.glibcLocales</code></a></span></dt><dd><p>This option has no description.</p><p><span class="emphasis"><em>Type:</em></span> list of packages</p><p><span class="emphasis"><em>Default:</em></span> <code class="literal">
