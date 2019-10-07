@@ -78,8 +78,8 @@
         default = null;
       };
       order = mkOption {
-        type = types.int;
-        default = 1000;
+        type = (if isList then types.nullOr else id) types.int;
+        default = if isList then null else 1000;
       };
       "if" = mkOption {
         type = types.nullOr types.str;
@@ -98,10 +98,13 @@
         default = null;
         example = "bash";
       };
-      "with" = mkOption {
+      "with" = let
+        # mostly just anything that coerces to string
+        valueType = foldl' types.either (types.nullOr types.bool) [ types.str types.int types.float ];
+      in mkOption {
         # TODO: abstract this away into an action option type
         # TODO: with.entrypoint and with.args are special?
-        type = types.attrsOf types.unspecified;
+        type = types.attrsOf valueType;
         default = { };
       };
       env = mkOption {
@@ -117,7 +120,7 @@
         default = false;
       };
       timeout-minutes = mkOption {
-        type = types.nullOr types.int;
+        type = types.nullOr types.ints.positive;
         default = null;
       };
       shellTemplate = mkOption {
@@ -133,9 +136,9 @@
       order = /*if prev.id or null != null
         then config.step.${prev.id}.order
         else*/ prev.order;
-    in list ++ singleton ({
-      order = mkDefault (order + 10);
-    } // step)) [] steps;
+    in list ++ singleton (step // {
+      order = (if step.order != null then step.order else (order + 10));
+    })) [] steps;
   in {
     options = {
       id = mkOption {
@@ -178,7 +181,7 @@
         default = { };
       };
       timeout-minutes = mkOption {
-        type = types.int;
+        type = types.ints.positive;
         default = 360;
       };
       strategy = {
@@ -192,7 +195,7 @@
           default = true;
         };
         max-parallel = mkOption {
-          type = types.nullOr types.int;
+          type = types.nullOr types.ints.positive;
           default = null;
         };
       };

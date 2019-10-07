@@ -69,7 +69,7 @@
         default = false;
       };
       timeoutSeconds = mkOption {
-        type = types.nullOr types.int;
+        type = types.nullOr types.ints.positive;
         default = null;
       };
       cache = {
