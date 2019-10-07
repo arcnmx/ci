@@ -51,12 +51,16 @@
       #!${config.bootstrap.runtimeShell}
       source .attrs.sh
 
-      ${config.bootstrap.packages.coreutils}/bin/cat > ci-build <<EOF
-        #!${config.bootstrap.runtimeShell}
-        exec ${config.bootstrap.packages.ci-build} $attrsPath "\$@"
-      EOF
-      ${config.bootstrap.packages.coreutils}/bin/install -Dm0755 -t ''${outputs[out]}/bin ci-build
       ${config.bootstrap.packages.coreutils}/bin/install -D .attrs.sh $attrsPath
+      for bin in ${config.bootstrap.packages.ci-build}/bin/ci-build*; do
+        ${config.bootstrap.packages.coreutils}/bin/cat > ci-build <<EOF
+      #!${config.bootstrap.runtimeShell}
+      export CI_BUILD_ATTRS=\''${CI_BUILD_ATTRS-$attrsPath}
+      export PATH=''${outputs[out]}/bin:\$PATH
+      exec $bin "\$@"
+      EOF
+        ${config.bootstrap.packages.coreutils}/bin/install -Dm0755 ci-build ''${outputs[out]}/bin/''${bin##*/}
+      done
     '';
     meta.description = "build and test tasks${optionalString (tasks != {}) " - ${toString (attrNames tasks)}"}";
   } // scriptData tasks) "";

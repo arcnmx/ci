@@ -16,24 +16,53 @@ jobs:
     - id: nix-install
       name: nix install
       uses: arcnmx/ci/actions/nix/install@modules
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
+    - id: ci-setup
       name: nix setup
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.run.bootstrap
         quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-test
-      name: nix test
+    - id: crex
+      run: crex --help | lolcat
+    - id: ci-dirty
+      name: nix test dirty
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.run.test
+        command: ci-build-dirty
         quiet: false
-    - id: crex
-      run: crex --help | lolcat
+        stdout: ${{ runner.temp }}/ci.build.dirty
+    - id: ci-test
+      name: nix test build
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.test
+        command: ci-build-realise
+        ignore-exit-code: true
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+    - env:
+        CI_EXIT_CODE: ${{ steps.ci-test.outputs.exit-code }}
+      id: ci-summary
+      name: nix test results
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.test
+        command: ci-build-summarise
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+        stdout: ${{ runner.temp }}/ci.build.cache
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-cache
+      if: always()
+      name: nix test cache
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.run.test
+        command: ci-build-cache
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.cache
   ci-check:
     name: example check
     runs-on: ubuntu-latest
@@ -77,14 +106,45 @@ jobs:
     - id: nix-install
       name: nix install
       uses: arcnmx/ci/actions/nix/install@modules
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-test
-      name: nix test
+    - id: ci-dirty
+      name: nix test dirty
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.stage.docs.run.test
+        command: ci-build-dirty
         quiet: false
+        stdout: ${{ runner.temp }}/ci.build.dirty
+    - id: ci-test
+      name: nix test build
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.docs.run.test
+        command: ci-build-realise
+        ignore-exit-code: true
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+    - env:
+        CI_EXIT_CODE: ${{ steps.ci-test.outputs.exit-code }}
+      id: ci-summary
+      name: nix test results
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.docs.run.test
+        command: ci-build-summarise
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+        stdout: ${{ runner.temp }}/ci.build.cache
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-cache
+      if: always()
+      name: nix test cache
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.docs.run.test
+        command: ci-build-cache
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.cache
   mac:
     name: example-mac
     runs-on: macOS-latest
@@ -97,22 +157,51 @@ jobs:
     - id: nix-install
       name: nix install
       uses: arcnmx/ci/actions/nix/install@modules
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
+    - id: ci-setup
       name: nix setup
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.job.mac.run.bootstrap
         quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-test
-      name: nix test
+    - id: ci-dirty
+      name: nix test dirty
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.job.mac.run.test
+        command: ci-build-dirty
         quiet: false
+        stdout: ${{ runner.temp }}/ci.build.dirty
+    - id: ci-test
+      name: nix test build
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.mac.run.test
+        command: ci-build-realise
+        ignore-exit-code: true
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+    - env:
+        CI_EXIT_CODE: ${{ steps.ci-test.outputs.exit-code }}
+      id: ci-summary
+      name: nix test results
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.mac.run.test
+        command: ci-build-summarise
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+        stdout: ${{ runner.temp }}/ci.build.cache
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-cache
+      if: always()
+      name: nix test cache
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.mac.run.test
+        command: ci-build-cache
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.cache
   old:
     name: example-old
     runs-on: ubuntu-latest
@@ -125,22 +214,51 @@ jobs:
     - id: nix-install
       name: nix install
       uses: arcnmx/ci/actions/nix/install@modules
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-setup
+    - id: ci-setup
       name: nix setup
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.job.old.run.bootstrap
         quiet: false
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-test
-      name: nix test
+    - id: ci-dirty
+      name: nix test dirty
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.job.old.run.test
+        command: ci-build-dirty
         quiet: false
+        stdout: ${{ runner.temp }}/ci.build.dirty
+    - id: ci-test
+      name: nix test build
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.old.run.test
+        command: ci-build-realise
+        ignore-exit-code: true
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+    - env:
+        CI_EXIT_CODE: ${{ steps.ci-test.outputs.exit-code }}
+      id: ci-summary
+      name: nix test results
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.old.run.test
+        command: ci-build-summarise
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+        stdout: ${{ runner.temp }}/ci.build.cache
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-cache
+      if: always()
+      name: nix test cache
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.job.old.run.test
+        command: ci-build-cache
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.cache
   script:
     name: example script
     runs-on: ubuntu-latest
@@ -153,14 +271,45 @@ jobs:
     - id: nix-install
       name: nix install
       uses: arcnmx/ci/actions/nix/install@modules
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-test
-      name: nix test
+    - id: ci-dirty
+      name: nix test dirty
       uses: arcnmx/ci/actions/nix/run@modules
       with:
         attrs: ci.stage.script.run.test
+        command: ci-build-dirty
         quiet: false
+        stdout: ${{ runner.temp }}/ci.build.dirty
+    - id: ci-test
+      name: nix test build
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.script.run.test
+        command: ci-build-realise
+        ignore-exit-code: true
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+    - env:
+        CI_EXIT_CODE: ${{ steps.ci-test.outputs.exit-code }}
+      id: ci-summary
+      name: nix test results
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.script.run.test
+        command: ci-build-summarise
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.dirty
+        stdout: ${{ runner.temp }}/ci.build.cache
+    - env:
+        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
+      id: ci-cache
+      if: always()
+      name: nix test cache
+      uses: arcnmx/ci/actions/nix/run@modules
+      with:
+        attrs: ci.stage.script.run.test
+        command: ci-build-cache
+        quiet: false
+        stdin: ${{ runner.temp }}/ci.build.cache
     - uses: actions/checkout@v1
     - name: example.sh
       run: ./example.sh

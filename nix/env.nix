@@ -184,15 +184,24 @@ in {
         ci-build = mkOption {
           type = types.package;
           default = config.bootstrap.pkgs.runCommandNoCC "ci-build.sh" ({
-            script = ./lib/build/build.sh;
+            scriptBuild = ./lib/build/build.sh;
+            scriptDirty = ./lib/build/dirty.sh;
+            scriptRealise = ./lib/build/realise.sh;
+            scriptSummarise = ./lib/build/summarise.sh;
+            scriptCache = ./lib/build/cache.sh;
             inherit (config.bootstrap.packages) nix;
             inherit (config.bootstrap.pkgs) gnugrep gnused;
             inherit (config.bootstrap) runtimeShell;
             inherit (config.lib.ci.op) sourceOps;
             cachix = optionalString needsCachix config.bootstrap.pkgs.cachix;
           } // config.lib.ci.colours) ''
-            substituteAll $script $out
-            chmod +x $out
+            mkdir -p $out/bin
+            substituteAll $scriptBuild $out/bin/ci-build
+            substituteAll $scriptDirty $out/bin/ci-build-dirty
+            substituteAll $scriptRealise $out/bin/ci-build-realise
+            substituteAll $scriptSummarise $out/bin/ci-build-summarise
+            substituteAll $scriptCache $out/bin/ci-build-cache
+            chmod +x $out/bin/*
           '';
           defaultText = "channels.cipkgs.ci-build";
           visible = false;

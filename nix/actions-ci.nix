@@ -24,6 +24,7 @@
   , name ? null
   , platform ? systems.elaborate config.channels.nixpkgs.args.system
   , step ? { }
+  , steps ? [ ]
   , env ? { }
   }: { ${id} = {
     /* TODO: additional/manual setting overrides
@@ -56,6 +57,7 @@
         uses = action "nix/install";
       } // step.nix-install or {};
     };
+    inherit steps;
   } // optionalAttrs (name != null) {
     inherit name;
   }; };
@@ -123,30 +125,54 @@ in {
               attrs = "ci.${config.exportAttrDot}run.${if cfg.export then "bootstrap" else "setup"}";
               quiet = false;
             };
-            /*uses = action "internal/ci-setup";
-            "with" = {
-              job = toString config.jobId;
-              stage = toString config.stageId;
-              inherit (config.ci) configPath;
-            };*/
-            env.CACHIX_SIGNING_KEY = "\${{ secrets.CACHIX_SIGNING_KEY }}";
-          };
-          ci-test = {
-            name = "nix test";
-            uses = action "nix/run";
-            "with" = {
-              attrs = "ci.${config.exportAttrDot}run.test";
-              quiet = false;
-            };
-            /*uses = action "internal/ci-build";
-            "with" = {
-              job = toString config.jobId;
-              stage = toString config.stageId;
-              inherit (config.ci) configPath;
-            };*/
-            env.CACHIX_SIGNING_KEY = "\${{ secrets.CACHIX_SIGNING_KEY }}";
           };
         };
+        steps = [ { # TODO: nix/build with export-path instead to avoid repeating evaluation
+          id = "ci-dirty";
+          name = "nix test dirty";
+          uses = action "nix/run";
+          "with" = {
+            attrs = "ci.${config.exportAttrDot}run.test";
+            command = "ci-build-dirty";
+            stdout = "\${{ runner.temp }}/ci.build.dirty";
+            quiet = false;
+          };
+        } {
+          id = "ci-test";
+          name = "nix test build";
+          uses = action "nix/run";
+          "with" = {
+            attrs = "ci.${config.exportAttrDot}run.test";
+            command = "ci-build-realise";
+            stdin = "\${{ runner.temp }}/ci.build.dirty";
+            quiet = false;
+            ignore-exit-code = true;
+          };
+        } {
+          id = "ci-summary";
+          name = "nix test results";
+          uses = action "nix/run";
+          "with" = {
+            attrs = "ci.${config.exportAttrDot}run.test";
+            command = "ci-build-summarise";
+            stdin = "\${{ runner.temp }}/ci.build.dirty";
+            stdout = "\${{ runner.temp }}/ci.build.cache";
+            quiet = false;
+          };
+          env.CI_EXIT_CODE = "\${{ steps.ci-test.outputs.exit-code }}";
+        } {
+          id = "ci-cache";
+          name = "nix test cache";
+          uses = action "nix/run";
+          "with" = {
+            attrs = "ci.${config.exportAttrDot}run.test";
+            command = "ci-build-cache";
+            stdin = "\${{ runner.temp }}/ci.build.cache";
+            quiet = false;
+          };
+          "if" = "always()";
+          env.CACHIX_SIGNING_KEY = "\${{ secrets.CACHIX_SIGNING_KEY }}";
+        } ];
       }))
       (subjobs config.jobs)
       (subjobs config.stages)
