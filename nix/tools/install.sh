@@ -60,10 +60,10 @@ cat $($NIX_PATH_DIR/nix eval --raw --arg config ${CI_CONFIG-$CI_ROOT/tests/empty
 export_env() {
   case "${CI_PLATFORM-}" in
     gh-actions)
-      echo "::set-env name=$1::$2"
+      echo "::set-env name=$1::$2" >&2
       ;;
     azure-pipelines)
-      echo "##vso[task.setvariable variable=$1]$2"
+      echo "##vso[task.setvariable variable=$1]$2" >&2
       ;;
   esac
 }
@@ -77,9 +77,9 @@ fi
 
 case "${CI_PLATFORM-}" in
   gh-actions)
-    echo "::set-output name=version::$NIX_VERSION"
-    echo "::set-output name=nix-path::${NIX_PATH-}"
-    echo "::add-path::$NIX_PATH_DIR"
+    echo "::set-output name=version::$NIX_VERSION" >&2
+    echo "::set-output name=nix-path::${NIX_PATH-}" >&2
+    echo "::add-path::$NIX_PATH_DIR" >&2
     sudo chown 0:0 / || true
     ;;
   azure-pipelines)

@@ -1,9 +1,5 @@
 { config, pkgs, lib, ... }: with lib; {
   gh-actions.env = {
-    GITHUB_EVENT_NAME = "\${{ github.event_name }}";
-    GITHUB_REF = "\${{ github.ref }}";
-    GITHUB_SHA = "\${{ github.sha }}";
-    GITHUB_REPOSITORY = "\${{ github.repository }}";
     GIT_DEPLOY_KEY = "\${{ secrets.deploy_key }}";
   };
   tasks = {
