@@ -71,13 +71,13 @@
     </para>
     <itemizedlist>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/ci/blob/modules/examples/ci.nix"> Example</link>
+        <link xlink:href="https://github.com/arcnmx/ci/blob/master/examples/ci.nix"> Example</link>
       </para></listitem>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/ci/tree/modules/tests">CI Tests</link>
+        <link xlink:href="https://github.com/arcnmx/ci/tree/master/tests">CI Tests</link>
       </para></listitem>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/ci/ci.nix">rust channel tests</link>
+        <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/master/ci.nix">rust channel tests</link>
       </para></listitem>
     </itemizedlist>
   </chapter>
