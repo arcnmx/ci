@@ -1,9 +1,0 @@
-#!/bin/bash
-set -eu
-
-if [ -z "${CRATES_IO_TOKEN:-}" ]; then
-	CRATES_IO_TOKEN=`grep '^token' $HOME/.cargo/config | cut -d '"' -f 2`
-fi
-
-travis encrypt -pa env.global --no-interactive "CRATES_IO_TOKEN=$CRATES_IO_TOKEN"
-travis encrypt -pa env.global --no-interactive "GH_TOKEN=$GH_TOKEN"
