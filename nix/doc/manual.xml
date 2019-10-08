@@ -7,10 +7,10 @@
     <title>CI/nix Manual</title>
   </info>
   <preface>
-    <title>Preface</title>
+    <title>CI/nix</title>
     <para>
-      <link xlink:href="https://github.com/arcnmx/ci">CI</link> is a configurable continuous
-      integration and testing system built on top of nix and the NixOS module system. Its aim is to
+      <link xlink:href="https://github.com/arcnmx/ci">CI</link> is a declarative continuous
+      integration and testing system built on top of Nix and the NixOS module system. Its aim is to
       be flexible in order to meet the many needs of the various technologies and cloud providers in
       use with CI today, while being simple and self-contained so that all actions can be performed
       on a local machine. Build results should be reproducible so if it works on your machine then
