@@ -17,6 +17,29 @@
       it will work on the CI server as well!
     </para>
     <para>
+      Some of the project's goals and features are...
+    </para>
+    <itemizedlist>
+      <listitem><para>
+        The same reproducibility guarantees provided by the Nix and NixOS ecosystem, offering consistent builds that will produce the same results whether they run on your laptop or in the cloud.
+      </para></listitem>
+      <listitem><para>
+        Matrix builds that run locally as well as on remote CI servers.
+      </para></listitem>
+      <listitem><para>
+        Integration with the Nix store to cache and avoid repeating unnecessary work.
+      </para></listitem>
+      <listitem><para>
+        Included escape hatches for tests, commands, and deployments that require the network or other resources that would normally be restricted by using Nix.
+      </para></listitem>
+      <listitem><para>
+        Integration with existing CI providers while being agnostic to the underlying service, allowing the same configuration to work with multiple providers while still providing dashboards and results that reflect your configuration.
+      </para></listitem>
+      <listitem><para>
+        Ability to publish results and perform follow-up actions and notifications without being constrained to any particular provider's capabilities.
+      </para></listitem>
+    </itemizedlist>
+    <para>
       (this is currently all very much WIP right now, but please do <link xlink:href="https://github.com/arcnmx/ci/issues">file issues</link> if you actually use it and have questions or concerns!)
     </para>
   </preface>
@@ -71,13 +94,13 @@
     </para>
     <itemizedlist>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/ci/blob/master/examples/ci.nix"> Example</link>
+        <link xlink:href="https://github.com/arcnmx/ci/blob/master/examples/ci.nix#blob-path"> Example</link> and <link xlink:href="https://github.com/arcnmx/ci/runs/251473028">associated dashboard</link>
       </para></listitem>
       <listitem><para>
         <link xlink:href="https://github.com/arcnmx/ci/tree/master/tests">CI Tests</link>
       </para></listitem>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/master/ci.nix">rust channel tests</link>
+        <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/master/ci.nix#blob-path">rust channel tests</link>
       </para></listitem>
     </itemizedlist>
   </chapter>
