@@ -33,8 +33,8 @@
       gh-slug = envOrNull "GITHUB_REPOSITORY";
       gh-actor = envOrNull "GITHUB_ACTOR";
       tmpdir = envOrNull "RUNNER_TEMP";
-      build-dir = envOrNull "GITHUB_WORKSPACE";
-      work-dir = envOrNull "RUNNER_WORKSPACE";
+      build-dir = envOrNull "GITHUB_WORKSPACE"; # git repo checkout goes here
+      work-dir = envOrNull "RUNNER_WORKSPACE"; # this is um, a workspace? it's actually the parent of the build-dir...
       gh-event-name = envOrNull "GITHUB_EVENT_NAME"; # "push", "pull_request", etc
       gh-event = importJSON (envOrNull "GITHUB_EVENT_PATH");
       gh-workflow = envOrNull "GITHUB_WORKFLOW"; # workflow name/id

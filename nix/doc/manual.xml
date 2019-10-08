@@ -15,7 +15,8 @@
       use with CI today, while being simple and self-contained so that all actions can be performed
       on a local machine. Build results should be reproducible so if it works on your machine then
       it will work on the CI server as well!
-
+    </para>
+    <para>
       (this is currently all very much WIP right now, but please do <link xlink:href="https://github.com/arcnmx/ci/issues">file issues</link> if you actually use it and have questions or concerns!)
     </para>
   </preface>

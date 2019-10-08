@@ -15,7 +15,7 @@
         impure = true;
         skip =
           if env.platform != "gh-actions" || env.gh-event-name != "push" then env.gh-event-name
-          # else if env.git-branch != "master" then "branch"
+          else if env.git-branch != "master" then "branch"
           else if env.get "GIT_DEPLOY_KEY" == null then "missing key"
           else false;
         gitCommit = env.git-commit;
