@@ -23,7 +23,7 @@
 in {
   execSsh = {
     commands
-  , connectionDetails # address ? "127.0.0.1", port, user
+  , connectionDetails
   }: let
     executorFor = executor: drv: config.lib.ci.commandExecutor {
       inherit drv;
@@ -47,8 +47,9 @@ in {
         };
       };
 
-      inherit (connectionDetails) port user;
+      inherit (connectionDetails) address port user;
       sshdConfig = ''
+        ListenAddress @address@
         Port @port@
         #UsePrivilegeSeparation no
         PasswordAuthentication no

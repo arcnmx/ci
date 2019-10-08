@@ -197,12 +197,12 @@ in {
       inherit (config.project.executor) connectionDetails;
       inherit commands;
     });
-    connectionDetails = mapAttrs (_: mkOptionDefault) {
-      address = "127.0.0.1";
-      user = builtins.getEnv "USER";
-      port = if builtins.getEnv "CI_PORT" == ""
-        then 50650 # u-umm
-        else builtins.getEnv "CI_PORT";
+    connectionDetails = with config.lib.ci; mapAttrs (_: mkOptionDefault) {
+      address = env.getOr
+        (if (systems.elaborate config.nixpkgs.args.system).isLinux then "127.42.0.2" else "127.0.0.1")
+        "CI_EXEC_ADDRESS";
+      user = env.getOr (env.get "USER") "CI_EXEC_USER";
+      port = env.getOr 50650 "CI_EXEC_PORT"; # u-umm
     };
   };
   config.lib.ci = {

@@ -51,5 +51,6 @@
     global = envMappings.global;
   in global // filtered envMappings.${global.platform} or { } // filtered globalEnv // {
     get = envOrNull;
+    getOr = envOr;
   };
 }
