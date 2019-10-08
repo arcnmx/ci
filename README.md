@@ -21,7 +21,7 @@ nix run --arg config '<ci/examples/ci.nix>' ci.test
 ```
 
 
-### Cloud Providers
+### Provider Support
 
 Though a simple command like the above can be run on any machine or CI service,
 automated configuration generators and full support for job descriptions and
