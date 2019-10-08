@@ -23,7 +23,7 @@
         path = config.lib.ci.mkOptionDefault1 config.nixpkgs.path;
       };
       ci = {
-        version = "modules";
+        version = config.ci.version;
         path = toString ../.;
       };
       nmd = {

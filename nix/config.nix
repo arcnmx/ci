@@ -4,7 +4,7 @@ in {
   options.ci = {
     version = mkOption {
       type = types.str;
-      default = "modules"; # TODO: adjust once released
+      default = "master";
     };
     url = mkOption {
       type = types.str;
