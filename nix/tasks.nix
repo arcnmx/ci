@@ -155,8 +155,9 @@
         '';
 
         meta = {
-          inherit (config) name;
           ${mapNullable (_: "timeout") config.timeoutSeconds} = config.timeoutSeconds;
+        } // optionalAttrs (config.name != null) {
+          inherit (config) name;
         };
         passthru = config.args.passthru or {} // {
           inputs = config.internal.inputs.valid;
