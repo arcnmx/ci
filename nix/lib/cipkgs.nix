@@ -6,10 +6,13 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://hydra.nixos.org/project/nix)
-    # TODO: check <nix/config.nix> to make sure these actually line up?
     "2.3" = nixpkgsSource {
       rev = "56b84277cc8c52318a99802878b0725b2e34648e";
       sha256 = "0rhpkfcfvszvcga7lcy4zqzchglsnvrzphkz59ifp9ihvmxrq14y";
+    };
+    "2.3.1" = nixpkgsSource {
+      rev = "df7e351af91e6cbf4434e281d35fec39348a5d91";
+      sha256 = "19fpg1pya2iziwk10wja69ma65r985zdcd9blkplyg0l1lnn8haq";
     };
     "2.2.2" = nixpkgsSource {
       rev = "2296f0fc9559d0b6e08a7c07b25bd0a5f03eebe5";
