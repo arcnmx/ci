@@ -18,14 +18,10 @@
         cache.enable = false;
       };
     };
-  }) else if cache.wrap || input.ci.cache.wrap or false == true || input.allowSubstitutes or true == false then input.overrideAttrs (old: {
+  }) else if cache.wrap || input.ci.cache.wrap or false == true || input.allowSubstitutes or true == false then (pkgs.ci.wrapper input).overrideAttrs (old: {
     passthru = old.passthru or {} // {
       ci = old.passthru.ci or {} // {
-        inputs = old.passthru.ci.inputs or [] ++ [ (pkgs.ci.wrapper input) ];
-        cache = {
-          enable = true;
-          inputs = [ (pkgs.ci.wrapper input) ];
-        };
+        cache.enable = input.allowSubstitutes or true;
       };
     };
   }) else input;
