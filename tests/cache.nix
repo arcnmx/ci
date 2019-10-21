@@ -12,4 +12,9 @@
   } ''
     echo $system > $out
   '';
+  tasks.nonsubstitutable.inputs = pkgs.runCommand "nonsub" {
+    allowSubstitutes = false;
+  } ''
+    touch $out
+  '';
 }
