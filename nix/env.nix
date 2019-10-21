@@ -78,6 +78,9 @@ in {
           internal = true;
         };
       };
+      experimental-features = mkOption {
+        type = types.listOf types.str;
+      };
       config = mkOption {
         type = types.attrsOf types.unspecified;
       };
@@ -315,7 +318,9 @@ in {
         trusted-public-keys = mkIf (any (s: s.publicKeys != []) (attrValues config.cache.substituters)) (
           concatLists (mapAttrsToList (_: s: s.publicKeys) config.cache.substituters)
         );
+        experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;
       };
+      experimental-features = optional (versionAtLeast builtins.nixVersion "2.4") "nix-command";
       configFile = let
         toNixValue = v:
           if v == true then "true"

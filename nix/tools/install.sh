@@ -50,6 +50,15 @@ $NIX_PATH_DIR/nix-store --load-db < $NIX_STORE_DIR/.reginfo
 rm $NIX_STORE_DIR/.reginfo
 export CI_CONFIG_ROOT="${CI_CONFIG_ROOT-$PWD}"
 
+# nix 2.4 may disable the nix command?
+case $NIX_VERSION in
+  1.*|2.[0123]*)
+    ;;
+  *)
+    echo 'experimental-features = nix-command' >> /etc/nix/nix.conf
+    ;;
+esac
+
 if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
   export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$($NIX_PATH_DIR/nix eval --raw -f "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
 fi
