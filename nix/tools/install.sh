@@ -28,9 +28,33 @@ NIX_VERSION=${NIX_VERSION#nix-}
 NIX_BASE=nix-$NIX_VERSION-$NIX_SYSTEM
 NIX_URL=$NIX_URL/$NIX_BASE.tar
 
+makedir() {
+  sudo mkdir -pm 0755 $1 && sudo chown $(id -u) $1
+}
+
 NIX_STORE_DIR=/nix
-sudo mkdir -pm 0755 $NIX_STORE_DIR /etc/nix
-sudo chown $(id -u) $NIX_STORE_DIR /etc/nix
+makedir /etc/nix
+if ! makedir $NIX_STORE_DIR; then
+  if [[ $NIX_SYSTEM = *-darwin ]]; then
+    # macos catalina mounts root readonly
+    if sudo mount -uw /; then
+      # if SIP is disabled this will still work...
+      makedir $NIX_STORE_DIR
+    else
+      # otherwise best we can do is tell macos to make us a symlink
+      # see also: https://github.com/NixOS/nix/pull/3212
+      makedir /usr/local/nix
+      echo -e 'nix\t/usr/local/nix' | sudo tee -a /etc/synthetic.conf > /dev/null
+      if ! /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -B; then
+        echo "failed to create synthetic link" >&2
+        exit 1
+      fi
+      export NIX_IGNORE_SYMLINK_STORE=1
+    fi
+  else
+    exit 1
+  fi
+fi
 if curl -fsSLI $NIX_URL.xz > /dev/null; then
   tar -C $NIX_STORE_DIR --strip-components=1 -xJf <(curl -fSL $NIX_URL.xz)
 else
@@ -82,6 +106,9 @@ export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
 export_env CI_CONFIG_ROOT "$CI_CONFIG_ROOT"
 if [[ -n ${NIX_PATH-} ]]; then
   export_env NIX_PATH "$NIX_PATH"
+fi
+if [[ -n ${NIX_IGNORE_SYMLINK_STORE-} ]]; then
+  export_env NIX_IGNORE_SYMLINK_STORE "$NIX_IGNORE_SYMLINK_STORE"
 fi
 
 case "${CI_PLATFORM-}" in
