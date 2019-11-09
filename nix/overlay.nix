@@ -40,7 +40,9 @@ self: super: let
   }@args: let
     args' = removeAttrs args [
       "name" "command" "meta" "passthru" "warn" "skip" "cache" "displayName" "timeout" "tests" "impure" "sha256" "ciEnv" "passAsFile" "environment"
-    ];
+    ] // optionalAttrs (builtins.getEnv "NIX_IGNORE_SYMLINK_STORE" == "1") {
+      NIX_IGNORE_SYMLINK_STORE = "1";
+    };
     argVars = attrNames args' ++ environment;
     commandPath = "${prefix}/run-test";
     # TODO: nativeBuildInputs should work with impure commands!
