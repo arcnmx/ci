@@ -20,7 +20,7 @@
     source @out@/@prefix@/env
     ci_env_impure
 
-    BUILD_ARGS=(@runtimeDrv@)
+    BUILD_ARGS=(-E "import @runtimeDrv@")
     if [[ -n ''${CI_ENV-} ]]; then
       BUILD_ARGS+=(-o $CI_ENV)
     fi
