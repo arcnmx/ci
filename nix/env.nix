@@ -5,6 +5,9 @@
     inherit pkgs;
     bootpkgs = config.nixpkgs.import;
   };
+  storePath = p: if builtins.getEnv "NIX_IGNORE_SYMLINK_STORE" != "1"
+    then builtins.storePath p
+    else if builtins.isPath p || builtins.hasContext p then p else /. + p; # there are some alternatives but...
   channelType = channels.channelTypeCoerced (channels.channelType (channelArgs // {
     inherit (config) channels;
     specialImport = config._module.args.import;
@@ -62,7 +65,7 @@
   filteredSource = path: config.bootstrap.pkgs.nix-gitignore.gitignoreSourcePure [
     "/.git"
   ] path; # TODO: name = "source"?
-  bootstrapStorePath = v: builtins.storePath (/. + v + "/../..");
+  bootstrapStorePath = v: storePath (/. + v + "/../..");
   envBuilder = config.bootstrap.pkgs.buildPackages.callPackage (import ./lib/env-builder.nix) { inherit config; };
   needsCache = any (c: c.url != nixosCache) (attrValues config.cache.substituters);
   needsCachix = any (c: c.enable && (c.publicKey == null || c.signingKey != null)) (attrValues config.cache.cachix);
@@ -109,7 +112,7 @@ in {
       };
       runtimeShell = mkOption {
         type = types.path;
-        default = builtins.storePath (/. + config.nix.corepkgs.config.shell);
+        default = storePath (/. + config.nix.corepkgs.config.shell);
         defaultText = "corepkgs.shell";
         internal = true;
       };
@@ -147,13 +150,13 @@ in {
         };
         coreutils = mkOption {
           type = types.package;
-          default = builtins.storePath (/. + config.nix.corepkgs.config.coreutils + "/..");
+          default = storePath (/. + config.nix.corepkgs.config.coreutils + "/..");
           defaultText = "corepkgs.coreutils";
           visible = false;
         };
         nix = mkOption {
           type = types.package;
-          default = builtins.storePath (/. + config.nix.corepkgs.config.nixPrefix);
+          default = storePath (/. + config.nix.corepkgs.config.nixPrefix);
           defaultText = "corepkgs.nix";
         };
         cachix = mkOption {
@@ -400,8 +403,8 @@ in {
         };
         mkOptionDefault1 = config.lib.ci.mkOverrideAdj mkOptionDefault (-100);
         mkOptionDefault2 = config.lib.ci.mkOverrideAdj config.lib.ci.mkOptionDefault1 (-100);
-        storePathFor = path: if hasPrefix builtins.storeDir (toString path)
-          then builtins.storePath path
+        storePathFor = path: if hasPrefix builtins.storeDir (toString path) || hasPrefix "/usr/local/nix" (toString path)
+          then storePath path
           else if builtins.getEnv "CI_PLATFORM" == "impure" then toString path
           else filteredSource path;
       };
