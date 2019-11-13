@@ -43,8 +43,9 @@ if ! makedir $NIX_STORE_DIR; then
     else
       # otherwise best we can do is tell macos to make us a symlink
       # see also: https://github.com/NixOS/nix/pull/3212
-      makedir /usr/local/nix
-      echo -e 'nix\t/usr/local/nix' | sudo tee -a /etc/synthetic.conf > /dev/null
+      NIX_STORE_CANON=/opt/nix
+      makedir $NIX_STORE_CANON
+      echo -e "nix\\t$NIX_STORE_CANON" | sudo tee -a /etc/synthetic.conf > /dev/null
       if ! /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -B; then
         echo "failed to create synthetic link" >&2
         exit 1
