@@ -14,6 +14,10 @@ rec {
       rev = "df7e351af91e6cbf4434e281d35fec39348a5d91";
       sha256 = "19fpg1pya2iziwk10wja69ma65r985zdcd9blkplyg0l1lnn8haq";
     };
+    "2.3.2" = nixpkgsSource {
+      rev = "87c698a5ca655fe108958eb4bc6ad7a9b8bfcd82";
+      sha256 = "1ayipwmgbnf2vggr7jbq5l0vg0ly3g2wmcyajd3a7355g9hys3q3";
+    };
     "2.2.2" = nixpkgsSource {
       rev = "2296f0fc9559d0b6e08a7c07b25bd0a5f03eebe5";
       sha256 = "197f6glm69717a5pj7bwm57vf1wrgh8nb13sa9qpjkz4803xpzdf";
