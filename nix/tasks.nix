@@ -132,7 +132,9 @@
         impure = partitioned'impure.right;
         pure = partitioned'impure.wrong;
         wrapped = map pkgs.ci.wrapper partitioned'impure.wrong;
-        wrappedImpure = map executor.ci.executor.for config.internal.inputs.impure;
+        wrappedImpure = if executor != null
+          then map executor.ci.executor.for config.internal.inputs.impure
+          else [ ];
         # TODO: possibly want to be able to filter out warn'd inputs so task can still run when they fail?
       };
       drv = pkgs.stdenvNoCC.mkDerivation {
@@ -189,7 +191,7 @@ in {
   };
   config.project.executor = {
     drv = let
-      commands = concatLists (mapAttrsToList (_: t: t.internal.inputs.impure) config.tasks);
+      commands = concatLists (mapAttrsToList (_: t: optionals (t.skip == false) t.internal.inputs.impure) config.tasks);
     in mkOptionDefault (if commands == [] then null else config.lib.ci.execSsh {
       inherit (config.project.executor) connectionDetails;
       inherit commands;
