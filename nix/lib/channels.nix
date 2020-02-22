@@ -203,6 +203,7 @@ lib: with lib; rec {
     nur = githubChannel "nix-community/NUR";
     arc = githubChannel "arcnmx/nixexprs";
     ci = githubChannel "arcnmx/ci";
-    nmd = gitlabChannel "rycee/nmd";
+    #nmd = gitlabChannel "rycee/nmd"; # gitlab seems to have rate limits (429 Too Many Requests)?
+    nmd = githubChannel "arcnmx/nmd";
   };
 }
