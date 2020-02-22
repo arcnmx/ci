@@ -29,13 +29,13 @@ in {
       type = types.unspecified;
     };
     manPages = mkOption {
-      type = types.package;
+      type = types.unspecified;
     };
     manual = mkOption {
-      type = types.package;
+      type = types.unspecified;
     };
     open = mkOption {
-      type = types.package;
+      type = types.unspecified;
     };
   };
 
