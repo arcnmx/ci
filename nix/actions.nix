@@ -272,7 +272,7 @@ in {
       });
       passAsFile = [ "data" "buildCommand" ];
       buildCommand = ''
-        yq --yaml-output -c . $dataPath > $out
+        yq ${optionalString (versionAtLeast (channels.cipkgs.yq.version or "2") "2.8.0") "--indentless-lists "}--yaml-output -c . $dataPath > $out
       '';
     };
   };
