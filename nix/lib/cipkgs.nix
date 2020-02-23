@@ -18,13 +18,17 @@ rec {
       rev = "87c698a5ca655fe108958eb4bc6ad7a9b8bfcd82";
       sha256 = "1ayipwmgbnf2vggr7jbq5l0vg0ly3g2wmcyajd3a7355g9hys3q3";
     };
-    "2.2.2" = nixpkgsSource {
-      rev = "2296f0fc9559d0b6e08a7c07b25bd0a5f03eebe5";
-      sha256 = "197f6glm69717a5pj7bwm57vf1wrgh8nb13sa9qpjkz4803xpzdf";
+    "2.3.3" = nixpkgsSource {
+      rev = "4dc0c1761c8dd15e9ddfff793f22dba2a0828986";
+      sha256 = "1pw9xfsqfaig1vdmm6a4cgbqdw5bc0by84g7rip53m68p8fa33c5";
     };
     "2.2.1" = nixpkgsSource {
       rev = "d26f11d38903768bf10036ce70d67e981056424b";
       sha256 = "16d986r76ps7542mbm63dxiavxw9af08l4ffpjp38lpam2cd9zpp";
+    };
+    "2.2.2" = nixpkgsSource {
+      rev = "2296f0fc9559d0b6e08a7c07b25bd0a5f03eebe5";
+      sha256 = "197f6glm69717a5pj7bwm57vf1wrgh8nb13sa9qpjkz4803xpzdf";
     };
     "19.09" = nixpkgsSource {
       # 19.09 release
