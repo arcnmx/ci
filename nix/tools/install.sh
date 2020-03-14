@@ -11,8 +11,6 @@ if [[ $NIX_VERSION != latest && $NIX_VERSION != nix-* ]]; then
   NIX_VERSION=nix-$NIX_VERSION
 fi
 
-NIX_URL=https://nixos.org/releases/nix/$NIX_VERSION
-
 case "$(uname -s).$(uname -m)" in
   Linux.x86_64) NIX_SYSTEM=x86_64-linux;;
   Linux.i?86) NIX_SYSTEM=i686-linux;;
@@ -21,8 +19,9 @@ case "$(uname -s).$(uname -m)" in
 esac
 
 if [[ $NIX_VERSION = latest ]]; then
-  NIX_VERSION=$(curl -fsSL $NIX_URL/install | grep -o 'nix-[0-9.]*' | tail -n1)
+  NIX_VERSION=$(curl -fsSL https://nixos.org/nix/install | grep -o 'nix-[0-9.]*' | tail -n1)
 fi
+NIX_URL=https://nixos.org/releases/nix/$NIX_VERSION
 NIX_VERSION=${NIX_VERSION#nix-}
 
 NIX_BASE=nix-$NIX_VERSION-$NIX_SYSTEM
