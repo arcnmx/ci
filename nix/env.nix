@@ -229,6 +229,11 @@ in {
         default = envIsSet "CI_CLOSE_STDIN";
         defaultText = ''getEnv "CI_CLOSE_STDIN" != ""'';
       };
+      workingDirectory = mkOption {
+        type = types.path;
+        default = env.getOr "/" "PWD";
+        defaultText = ''getEnv "PWD"'';
+      };
       glibcLocales = mkOption {
         type = types.listOf types.package;
         default = [ ];

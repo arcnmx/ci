@@ -33,13 +33,14 @@ self: super: let
   , timeout ? null
   , tests ? null
   , impure ? false
+  , cwd ? config.environment.workingDirectory
   , environment ? []
   , ciEnv ? true
   , sha256 ? null
   , ...
   }@args: let
     args' = removeAttrs args [
-      "name" "command" "meta" "passthru" "warn" "skip" "cache" "displayName" "timeout" "tests" "impure" "sha256" "ciEnv" "passAsFile" "environment"
+      "name" "command" "meta" "passthru" "warn" "skip" "cache" "displayName" "timeout" "tests" "impure" "sha256" "ciEnv" "passAsFile" "cwd" "environment"
     ] // optionalAttrs (builtins.getEnv "NIX_IGNORE_SYMLINK_STORE" == "1") {
       NIX_IGNORE_SYMLINK_STORE = "1";
     };
@@ -50,6 +51,7 @@ self: super: let
       mkdir -p $out/${prefix}
       {
         cat $commandHeaderPath
+        echo cd ${cwd}
         ${optionalString (argVars != []) "declare -p $argVars"}
         cat $commandPath
       } > $out/${commandPath}
