@@ -5,7 +5,7 @@ CI_DRV_DIRTY=$(ci-build-dirty)
 
 CI_EXIT_CODE=0
 if [[ -z ${CI_DRY_RUN-} ]]; then
-  echo $CI_DRV_DIRTY | ci-build-realise || CI_EXIT_CODE=0
+  echo $CI_DRV_DIRTY | ci-build-realise || CI_EXIT_CODE=$?
 fi
 export CI_EXIT_CODE
 
