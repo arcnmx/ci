@@ -17,7 +17,7 @@
       echo "[$address]:$port $(cat $executor/$prefix/sshd_key.pub)" > known_hosts
       CLIENT_KEY=$(mktemp)
       install -m600 $executor/$prefix/$(basename $commandDrv) $CLIENT_KEY
-      ssh -i $CLIENT_KEY -o UserKnownHostsFile=$PWD/known_hosts -p $port $user@$address $commandDrv
+      ssh -F none -i $CLIENT_KEY -o UserKnownHostsFile=$PWD/known_hosts -o GlobalKnownHostsFile=/dev/null -p $port $user@$address $commandDrv
     '';
   };
 in {
@@ -53,8 +53,8 @@ in {
         Port @port@
         #UsePrivilegeSeparation no
         PasswordAuthentication no
-        AuthorizedKeysCommand /usr/bin/env cat @out@/@prefix@/authorized_keys
-        AuthorizedKeysCommandUser @user@
+        AuthorizedKeysFile @out@/@prefix@/authorized_keys
+        StrictModes no
         ChallengeResponseAuthentication no
         ${optionalString pkgs.hostPlatform.isLinux "UsePAM no"}
       '';
