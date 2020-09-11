@@ -162,9 +162,9 @@ in {
     buildDrv = drv: buildDrvs [drv];
     logpipe = msg: " | (cat && echo ${msg} >&2)";
     #logpipe = msg: " | (${config.bootstrap.packages.coreutils}/bin/tee >(cat >&2) && echo ${msg} >&2)";
-    drvImports = drvs: builtins.toFile "drvs.nix" ''[]
-      ${builtins.concatStringsSep "\n" (map (d: "++ (import ${drvOf d}).all") drvs)}
-    '';
+    drvImports = drvs: builtins.toFile "drvs.nix" ''[
+      ${builtins.concatStringsSep "\n" (map (d: "(import ${drvOf d})") drvs)}
+    ]'';
     buildAnd = drvs: run:
       ''${buildDrvs drvs} > /dev/null && ${run}'';
     buildAndRun = drvs:
