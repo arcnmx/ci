@@ -44,7 +44,7 @@
       echo "[$address]:$port $(cat $sshdkey)" > known_hosts
       CLIENT_KEY=$(mktemp)
       install -m600 $sshkey $CLIENT_KEY
-      ssh ${optionalString tty "-t -t"} -F none -i $CLIENT_KEY -o UserKnownHostsFile=$PWD/known_hosts -o GlobalKnownHostsFile=/dev/null -p $port $user@$address false
+      ssh ${optionalString tty "-t -t"} -q -F none -i $CLIENT_KEY -o UserKnownHostsFile=$PWD/known_hosts -o GlobalKnownHostsFile=/dev/null -p $port $user@$address false
     '';
   };
 in {
