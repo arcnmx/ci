@@ -1,23 +1,50 @@
 { lib, config }: with lib; let
   inherit (config.bootstrap.pkgs.buildPackages) pkgs;
+  sshdkey = pkgs.stdenvNoCC.mkDerivation {
+    name = "ci-ssh-serverkey";
+
+    nativeBuildInputs = [ pkgs.openssh ];
+
+    outputs = [ "out" "priv" ];
+    buildCommand = ''
+      ssh-keygen -q -N "" -t ed25519 -f sshd_key
+      mv sshd_key.pub $out
+      mv sshd_key $priv
+    '';
+  };
+  commandKeyFor = command: pkgs.stdenvNoCC.mkDerivation {
+    name = "ci-ssh-commandkey";
+
+    nativeBuildInputs = [ pkgs.openssh ];
+
+    commandName = command.name; # TODO: hash more properties here
+
+    outputs = [ "out" "priv" ];
+    buildCommand = ''
+      ssh-keygen -q -N "" -t ed25519 -f ssh_key
+      mv ssh_key.pub $out
+      mv ssh_key $priv
+    '';
+  };
   sshExecutor = {
-    executor
+    drv
+  , executor
   }: let
+    tty = true;
   in {
     attrs = {
-      nativeBuildInputs = with pkgs; [ openssh ];
-      passAsFile = [ "privateKey" ];
-      inherit executor;
-      inherit (import ../global.nix) prefix;
+      nativeBuildInputs = [ pkgs.openssh ];
+      inherit sshdkey;
+      sshkey = (commandKeyFor drv).priv;
       inherit (executor.ci.connectionDetails) port address user;
     };
 
     name = "ci-ssh";
     buildCommand = ''
-      echo "[$address]:$port $(cat $executor/$prefix/sshd_key.pub)" > known_hosts
+      echo "[$address]:$port $(cat $sshdkey)" > known_hosts
       CLIENT_KEY=$(mktemp)
-      install -m600 $executor/$prefix/$(basename $commandDrv) $CLIENT_KEY
-      ssh -F none -i $CLIENT_KEY -o UserKnownHostsFile=$PWD/known_hosts -o GlobalKnownHostsFile=/dev/null -p $port $user@$address $commandDrv
+      install -m600 $sshkey $CLIENT_KEY
+      ssh ${optionalString tty "-t -t"} -F none -i $CLIENT_KEY -o UserKnownHostsFile=$PWD/known_hosts -o GlobalKnownHostsFile=/dev/null -p $port $user@$address false
     '';
   };
 in {
@@ -28,12 +55,16 @@ in {
     executorFor = executor: drv: config.lib.ci.commandExecutor {
       inherit drv;
       executor = sshExecutor {
+        inherit drv;
         inherit executor;
       };
     };
     executors = executor: map (executorFor executor) commands;
     commandsExec = listToAttrs (map (drv:
-      nameValuePair (config.lib.ci.drvOf drv) (map builtins.unsafeDiscardStringContext drv.ci.exec)
+      nameValuePair (config.lib.ci.drvOf drv) {
+        exec = map builtins.unsafeDiscardStringContext drv.ci.exec;
+        key = commandKeyFor drv;
+      }
     ) commands);
     drv = pkgs.stdenvNoCC.mkDerivation {
       inherit (import ../global.nix) prefix;
@@ -47,6 +78,7 @@ in {
         };
       };
 
+      sshdkey = sshdkey.priv;
       inherit (connectionDetails) address port user;
       sshdConfig = ''
         ListenAddress @address@
@@ -65,8 +97,8 @@ in {
       sshdScript = ''
         #!@runtimeShell@
         HOST_KEY=$(@coreutils@/bin/mktemp)
-        @coreutils@/bin/install -m600 @out@/@prefix@/sshd_key $HOST_KEY # TODO: remove this after sshd exit!
-        @openssh@/bin/sshd -e -f @out@/@prefix@/sshd_config -o "PidFile $EX_PIDFILE" -o "HostKey $HOST_KEY"
+        @coreutils@/bin/install -m600 @sshdkey@ $HOST_KEY # TODO: remove this after sshd exit!
+        @openssh@/bin/sshd -e -f @out@/@prefix@/sshd_config -h $HOST_KEY -o "PidFile $EX_PIDFILE"
       '';
 
       nativeBuildInputs = with pkgs; [ openssh jq ];
@@ -74,12 +106,10 @@ in {
       commandsExec = builtins.toJSON commandsExec;
       buildCommand = ''
         mkdir -p $out/$prefix $out/bin
-        ssh-keygen -q -N "" -t ed25519 -f $out/$prefix/sshd_key
         for command in $commands; do
-          IFS=$'\n' commandExec=($(jq -er ".\"$command\" | .[]" $commandsExecPath)) # TODO: support quoting these?
-          commandKey=$out/$prefix/$(basename $command)
-          ssh-keygen -q -N "" -t ed25519 -f $commandKey
-          echo "command=\"''${commandExec[*]}\" $(cat $commandKey.pub)"
+          IFS=$'\n' commandExec=($(jq -er ".\"$command\".exec | .[]" $commandsExecPath)) # TODO: support quoting these?
+          commandKey=$(jq -er ".\"$command\".key" $commandsExecPath)
+          echo "command=\"''${commandExec[*]}\" $(cat $commandKey)"
         done > $out/$prefix/authorized_keys
         substituteAll $sshdConfigPath $out/$prefix/sshd_config
         substituteAll $sshdScriptPath $out/bin/ci-sshd
