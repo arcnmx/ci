@@ -93,7 +93,7 @@ cat $($NIX_PATH_DIR/nix eval --raw --arg config ${CI_CONFIG-$CI_ROOT/tests/empty
 export_env() {
   case "${CI_PLATFORM-}" in
     gh-actions)
-      if [[ -v GITHUB_ENV ]]; then
+      if [[ -n "${GITHUB_ENV-}" ]]; then
         echo "$1=$2" >> $GITHUB_ENV
       else
         echo "::set-env name=$1::$2" >&2
@@ -119,7 +119,7 @@ case "${CI_PLATFORM-}" in
   gh-actions)
     echo "::set-output name=version::$NIX_VERSION" >&2
     echo "::set-output name=nix-path::${NIX_PATH-}" >&2
-    if [[ -v GITHUB_PATH ]]; then
+    if [[ -n "${GITHUB_PATH-}" ]]; then
       echo "$NIX_PATH_DIR" >> $GITHUB_PATH
     else
       echo "::add-path::$NIX_PATH_DIR" >&2
