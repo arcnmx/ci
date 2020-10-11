@@ -17,7 +17,7 @@
 
     nativeBuildInputs = [ pkgs.openssh ];
 
-    commandName = command.name; # TODO: hash more properties here
+    commandName = command.name;
 
     outputs = [ "out" "priv" ];
     buildCommand = ''

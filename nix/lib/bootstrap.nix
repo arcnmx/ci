@@ -28,7 +28,12 @@
 
     case "''${CI_PLATFORM-}" in
       gh-actions)
-        echo "::set-env name=BASH_ENV::@runtimeOut@/@prefix@/source"
+        SOURCE=@runtimeOut@/@prefix@/source
+        if [[ -v GITHUB_ENV ]]; then
+          echo "BASH_ENV=$SOURCE" >> $GITHUB_ENV
+        else
+          echo "::set-env name=BASH_ENV::$SOURCE" >&2
+        fi
         ;;
     esac
   '';
