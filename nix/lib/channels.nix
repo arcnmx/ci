@@ -169,7 +169,7 @@ lib: with lib; rec {
     };
   });
   nixpkgsChannels = { nixpkgsChannels, isLinux }: {
-    stable = "19.09";
+    stable = "20.09";
     stable-small = "${config.lib.nixpkgsChannels.stable}-small";
     unstable = if isLinux
       then "nixos-unstable"
@@ -177,8 +177,8 @@ lib: with lib; rec {
     unstable-small = if isLinux
       then "nixos-unstable-small"
       else nixpkgsChannels.unstable;
-    "20.03" = nixpkgsChannels.unstable;
-    "20.03-small" = nixpkgsChannels.unstable-small;
+    "21.03" = nixpkgsChannels.unstable;
+    "21.03-small" = nixpkgsChannels.unstable-small;
   };
   # TODO: think about how this will work with flakes. want to expand this to include overlays!
   githubChannel = slug: c: "https://github.com/${slug}/archive/${c}.tar.gz";
