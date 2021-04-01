@@ -6,9 +6,9 @@
     if inputs ? ci.inputs then flattenInputs inputs.ci.inputs
     #else if isDerivation inputs && inputs.ci.omit or false != false then [ ]
     else if isDerivation inputs then [ inputs ]
-    else if isAttrs inputs then concatMap flattenInputs (attrValues inputs)
+    else if isAttrs inputs then concatMap flattenInputs (filter (a: a.recurseForDerivations or true) (attrValues inputs))
     else if isList inputs then concatMap flattenInputs inputs
-    else builtins.trace inputs (throw "unsupported inputs");
+    else [ ];
   isValid = drv: assert isDerivation drv; # TODO: support lists or attrsets of derivations?
     !(drv.meta.broken or false) && (drv.ci.skip or false) == false && (drv.ci.omit or false) == false && drv.meta.available or true;
   mapInput = cache: input: if ! cache.enable then input.overrideAttrs (old: {
