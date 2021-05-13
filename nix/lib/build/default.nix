@@ -19,9 +19,11 @@
       inputs = cacheInputsOf drv;
       cachePaths = input: builtins.unsafeDiscardStringContext (concatMapStringsSep " " (out: toString input.${out}) input.outputs);
     in concatMapStringsSep " " cachePaths inputs;
+    cachixCaches = attrValues config.cache.cachix;
+    writableCaches = filter (c: c.signingKey != null) cachixCaches;
   in {
-    # TODO: error on multiple caches
-    ${if config.cache.cachix != { } then "CACHIX_CACHE" else null} = (head (attrValues config.cache.cachix)).name;
+    # TODO: support multiple caches
+    ${if writableCaches != [ ] then "CACHIX_CACHE" else null} = (head writableCaches).name;
     # structured input data for buildScript
     drvs = map drvOf drvs;
     drvExecutor = if executor == null then "" else executor.exec;

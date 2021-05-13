@@ -295,7 +295,7 @@ in {
           };
           signingKey = mkOption {
             type = types.nullOr types.str;
-            default = env.get "CACHIX_SIGNING_KEY";
+            default = if length (attrNames config.cache.cachix) == 1 then env.get "CACHIX_SIGNING_KEY" else null;
           };
         };
       });
