@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ pkgs, config, ... }: {
   ci = {
     url = ".";
     gh-actions.enable = true;
@@ -9,8 +9,8 @@
   };
   cache.cachix.ci = {
     # including the public key makes `cachix use` unnecessary
-    enable = true;
     publicKey = "ci.cachix.org-1:PNnkaD7orCQhpX698ERHZ5MrtdGK/DacprP+7Ye/ens=";
+    signingKey = config.lib.ci.env.get "CACHIX_SIGNING_KEY";
   };
   jobs = {
     linux = {
