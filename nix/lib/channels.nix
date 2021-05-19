@@ -96,14 +96,15 @@ lib: with lib; rec {
           else null
       ));
 
-      import = defaultConfig.${config.name}.import or (let
+      import = mkOptionDefault (defaultConfig.${config.name}.import or (let
         args = optionalAttrs (isFunction channel && ((functionArgs channel) ? pkgs)) { inherit pkgs; }
           // config.args.ciChannelArgs or config.args;
         file = if config.file != null
           then config.path + "/${config.file}"
           else config.path;
         channel = (if config.nixPathImport then specialImport else import) file;
-      in channel args);
+        imported = if isFunction channel then channel args else channel;
+      in imported));
     };
   });
   channelTypeCoerced = channelType: types.coercedTo types.str (version: {
