@@ -27,6 +27,8 @@ NIX_VERSION=${NIX_VERSION#nix-}
 NIX_BASE=nix-$NIX_VERSION-$NIX_SYSTEM
 NIX_URL=$NIX_URL/$NIX_BASE.tar
 
+echo "Downloading $NIX_BASE..." >&2
+
 makedir() {
   sudo mkdir -pm 0755 $1 && sudo chown $(id -u) $1
 }
