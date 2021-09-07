@@ -57,7 +57,7 @@
       gh-actions.jobs.script = {
         # just making sure the provided ./example.sh script works
         name = "example script";
-        steps = [ {
+        steps = mkForce [ {
           uses = {
             owner = "actions";
             repo = "checkout";
