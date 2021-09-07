@@ -21,9 +21,9 @@ bash -lc "nix run -L ci.run.bootstrap"
 
 # environment ready to go at this point
 export BASH_ENV=$CI_ENV/ci/source
-bash -c "crex --help | lolcat"
+bash -c "crex --help | lolcat --force"
 
 set +x
 # or from a single script
 source $BASH_ENV
-crex --help | lolcat
+crex --help | lolcat --force

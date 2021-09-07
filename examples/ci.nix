@@ -84,7 +84,7 @@
   gh-actions.jobs = {
     ci.step.crex = {
       # using ci.gh-actions.export, we can also access the environment implicitly
-      run = "crex --help | lolcat";
+      run = "crex --help | lolcat --force";
     };
   };
 }

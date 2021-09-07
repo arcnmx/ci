@@ -22,7 +22,7 @@ jobs:
         attrs: ci.run.bootstrap
         quiet: false
     - id: crex
-      run: crex --help | lolcat
+      run: crex --help | lolcat --force
     - id: ci-dirty
       name: nix test dirty
       uses: arcnmx/ci/actions/nix/run@master
