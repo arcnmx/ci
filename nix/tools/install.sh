@@ -90,7 +90,7 @@ if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
 fi
 
 # set up a default config
-cat $($NIX_PATH_DIR/nix eval --raw --arg config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} ci.config.nix.configFile) >> /etc/nix/nix.conf
+cat $($NIX_PATH_DIR/nix eval --raw --argstr config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} ci.config.nix.configFile) >> /etc/nix/nix.conf
 
 export_env() {
   case "${CI_PLATFORM-}" in
