@@ -56,8 +56,8 @@
       This allows the channel to be easily referred to while testing locally, like so:
     </para>
     <screen>
-      <prompt>$</prompt> <userinput>nix run ci.help</userinput>
-      <prompt>$</prompt> <userinput>nix run --arg config '&lt;ci/examples/ci.nix&gt;' ci.test</userinput>
+      <prompt>$</prompt> <userinput>nix run -f '&lt;ci&gt;' help</userinput>
+      <prompt>$</prompt> <userinput>nix run -f '&lt;ci&gt;' --arg config '&lt;ci/examples/ci.nix&gt;' test</userinput>
       <computeroutput>✔️ hello, world ok</computeroutput>
     </screen>
     <para>
@@ -76,7 +76,7 @@
       Global and CI commands can be found with the list command:
     </para>
     <screen>
-      <prompt>$</prompt> <userinput>nix run ci.list</userinput>
+      <prompt>$</prompt> <userinput>nix run -f '&lt;ci&gt;' list</userinput>
       <computeroutput>list</computeroutput>
       <computeroutput>run.gh-actions-generate</computeroutput>
       <computeroutput>run.test.example</computeroutput>

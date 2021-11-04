@@ -4,12 +4,14 @@ const { spawn } = require('child_process');
 const path = require('path')
 const fs = require('fs')
 
-const file = core.getInput('file');
 const quiet = core.getInput('quiet') !== 'false';
 const nix_path = core.getInput('nix-path').split(':').filter(a => a !== '');
 const ignore_exit = core.getInput('ignore-exit-code') !== 'false';
 const stdout_path = core.getInput('stdout');
 const stdin_path = core.getInput('stdin');
+const nix_version = core.nix.version();
+const nix2_4 = core.nix.versionIs24(nix_version);
+let file = core.getInput('file');
 let command = core.getInput('command');
 let cargs = core.getInput('args').split(' ');
 let attrs = core.getInput('attrs').split(' ');
@@ -27,10 +29,7 @@ if (cargs.length === 1) {
   cargs = cargs.filter(a => a !== '');
 }
 
-if (command === '' && cargs.length > 0) {
-  command = cargs[0];
-  cargs = cargs.splice(1);
-}
+file = core.nix.adjustFileAttrs(nix_version, file, attrs);
 
 let stdout;
 if (stdout_path === '') {
@@ -54,17 +53,31 @@ if (stdin_path === '') {
   });
 }
 
-const args = [
-  'run',
+let cmd = 'run';
+if (nix2_4 && command !== '') {
+  cmd = 'shell';
+}
+
+let args = [
+  cmd,
 ].concat(quiet ? [] : ['-L', '--show-trace'])
   .concat(file !== '' ? ['-f', file] : [])
-  .concat(attrs);
-
-const builder = spawn('nix', args
+  .concat(attrs)
   .concat(nix_path.map(p => ['-I', p]).flat())
-  .concat(options)
-  .concat(command !== '' ? ['-c', command] : [])
-  .concat(cargs), {
+  .concat(options);
+
+if (cmd === 'shell' || !nix2_4) {
+  if (command !== '' || cargs.length > 0) {
+    if (command === '') {
+      command = 'bash';
+    }
+    args = args.concat(['-c', command]).concat(cargs);
+  }
+} else if (cargs.length > 0) {
+  args = args.concat(['--']).concat(cargs);
+}
+
+const builder = spawn('nix', args, {
   env: Object.assign({}, process.env, {
     CI_PLATFORM: 'gh-actions',
   }),

@@ -2,6 +2,7 @@ const process = require('process');
 const os = require('os');
 const fs = require('fs');
 const crypto = require("crypto");
+const { spawnSync } = require('child_process');
 
 const envfile = process.env['GITHUB_ENV'];
 const pathfile = process.env['GITHUB_PATH'];
@@ -51,3 +52,59 @@ exports.exportVariable = function(name, value) {
 exports.getInput = function(name) {
   return (process.env[`INPUT_${name.toUpperCase()}`] || '').trim();
 };
+
+exports.nix = { };
+exports.nix.version = function() {
+  const env_ver = process.env['NIX_VERSION'];
+  if (env_ver) {
+    return env_ver;
+  } else {
+    const res = spawnSync('nix', ['--version'], {
+      windowsHide: true,
+      stdio: [
+        'ignore',
+        'pipe',
+        'inherit',
+      ],
+    });
+    if (res.error) {
+      throw res.error;
+    } else {
+      const stdout = res.stdout.split(' ');
+      if (stdout[0] === 'nix') {
+        return stdout[2].trimRight();
+      } else {
+        exports.error(`Unexpected nix --version output: ${res.stdout}`);
+        throw 'unexpected';
+      }
+    }
+  }
+};
+
+exports.nix.versionIs24 = function(version) {
+  return version.startsWith('2.4');
+}
+
+exports.nix.adjustFileAttrs = function(version, file, attrs) {
+  if (file === '' && exports.nix.versionIs24(version)) {
+    // compatibility from nix <2.4
+    attrs.forEach(function(attr, index) {
+      if (attr.includes('#')) {
+        return; // assume flake reference
+      }
+
+      const attr_split = attr.split('.');
+      let [ first ] = attr_split.splice(0, 1);
+      first = `<${first}>`;
+      if (file === '') {
+        file = first;
+      } else if (file !== first) {
+        exports.error(`cannot find common base with ${file} in ${attr}`);
+        return; // let nix deal with it
+      }
+      this[index] = attr_split.join('.');
+    }, attrs);
+  }
+
+  return file;
+}

@@ -6,11 +6,12 @@ const fs = require('fs')
 
 const compat = path.resolve(path.join(__dirname, '../../../nix/compat.nix'));
 
-const file = core.getInput('file');
 const add_path = core.getInput('add-path') !== '';
 const nix2 = core.getInput('nix2') !== 'false';
 const quiet = core.getInput('quiet') !== 'false';
 const nix_path = core.getInput('nix-path').split(':').filter(a => a !== '');
+const nix_version = core.nix.version();
+let file = core.getInput('file');
 let attrs = core.getInput('attrs').split(' ');
 let options = core.getInput('options').split(' ');
 let out_link = core.getInput('out-link');
@@ -28,6 +29,8 @@ if (options.length === 1) {
 if (attrs.length === 1) {
   attrs = attrs.filter(a => a !== '');
 }
+
+file = core.nix.adjustFileAttrs(nix_version, file, attrs);
 
 let args;
 let no_link;

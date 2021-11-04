@@ -10,13 +10,13 @@
 
     gh-actions-generate() {
       for f in "''${CI_CONFIG_FILES[@]}"; do
-        nix run --arg config "$f" ci.run.gh-actions-generate
+        nix run --arg config "$f" -f '<ci>' run.gh-actions-generate
       done
     }
 
     test-all() {
       for f in "''${CI_CONFIG_FILES[@]}"; do
-        nix run --arg config "$f" ci.test || break
+        nix run --arg config "$f" -f '<ci>' test || break
       done
     }
   '';
