@@ -26,12 +26,16 @@
       stages = mkForce { }; # jobs cannot contain stages!
     };
   };
+  mkOptionDefaultAlmost = mkOverride 1499;
   stageModule = { name, ...}: {
     config = {
       parentConfig = config;
       stageId = name;
       name = mkOptionDefault name;
-      ci.gh-actions.enable = mkIf config.ci.gh-actions.enable (mkDefault true);
+      ci = {
+        gh-actions.enable = mkIf config.ci.gh-actions.enable (mkOptionDefaultAlmost true);
+        url = mkOptionDefaultAlmost config.ci.url;
+      };
     };
   };
 in {

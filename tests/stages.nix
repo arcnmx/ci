@@ -1,6 +1,9 @@
 { pkgs, ... }: {
   name = "tests-stages";
-  ci.gh-actions.enable = true;
+  ci = {
+    url = ".";
+    gh-actions.enable = true;
+  };
   tasks.dummy.inputs = pkgs.ci.command {
     name = "dummy";
     command = "true";
