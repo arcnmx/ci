@@ -1,5 +1,8 @@
 #!@runtimeShell@
 set -eu
+if [[ -n "@nix@" ]]; then
+	export PATH="@nix@/bin:$PATH"
+fi
 
 CI_DRV_DIRTY=($(cat))
 
@@ -15,7 +18,7 @@ drv_valid() {
   if drv_skipped $1; then
     return 1
   else
-    @nix@/bin/nix-store -u -q --hash $1 > /dev/null 2>&1
+    nix-store -u -q --hash $1 > /dev/null 2>&1
   fi
 }
 

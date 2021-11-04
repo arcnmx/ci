@@ -17,7 +17,7 @@ export CI_CONFIG=./ci.nix
 
 # build the base/bootstrap environment and replace CI_ENV with final environment
 # this step installs dependencies from channels, can use additional caches, etc.
-bash -lc "nix run -L ci.run.bootstrap"
+bash -lc "nix run -L -f '<ci>' run.bootstrap"
 
 # environment ready to go at this point
 export BASH_ENV=$CI_ENV/ci/source

@@ -9,12 +9,12 @@
       isExecutable = true;
       inherit runtimeShell nix;
     };
-    ci-dirty = { substituteAll, runtimeShell, coreutils }: substituteAll {
+    ci-dirty = { substituteAll, runtimeShell, coreutils, nix }: substituteAll {
       name = "ci-dirty";
       dir = "bin";
       src = ./dirty.sh;
       isExecutable = true;
-      inherit runtimeShell coreutils;
+      inherit runtimeShell coreutils nix;
     };
   };
 in with derivations; {

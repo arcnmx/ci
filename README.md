@@ -17,7 +17,7 @@ With [nix](https://nixos.org/nix/) installed...
 
 ```bash
 export NIX_PATH=ci=https://github.com/arcnmx/ci/archive/master.tar.gz
-nix run --arg config '<ci/examples/ci.nix>' ci.test
+nix run --arg config '<ci/examples/ci.nix>' -f '<ci>' test
 ```
 
 

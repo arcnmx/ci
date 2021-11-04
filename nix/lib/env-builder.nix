@@ -38,7 +38,9 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
     ${optionalString config.environment.closeStdin "exec 0<&-"}
 
     export NIX_PATH=@nixPathStr@
-    export NIX_PREFIX=@nix@
+    if [[ -n "@nix@" ]]; then
+      export NIX_PREFIX=@nix@
+    fi
     export HOST_PATH=$PATH
     export CI_PATH=@out@/bin
     export CI_ROOT=@ciRoot@

@@ -1,6 +1,10 @@
 #!@runtimeShell@
 set -euo pipefail
 
+if [[ -n "@nix@" ]]; then
+	export PATH="@nix@/bin:$PATH"
+fi
+
 OPT_IGNORE_LOCAL=
 OPT_VERBOSE=
 

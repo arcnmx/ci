@@ -1,5 +1,8 @@
 { pkgs, channels, lib, config, configPath, ... }: with lib; with config.lib.ci; let
-  inherit (config.bootstrap.packages) ci-query ci-dirty nix;
+  inherit (config.bootstrap.packages) ci-query ci-dirty;
+  nixExe = exe: if config.bootstrap.packages.nix != null
+    then "${config.bootstrap.packages.nix}/bin/${exe}"
+    else "${exe}";
   cfg = config.exec;
   tasks = mapAttrs (_: { drv, ... }: drv) config.tasks;
 in {
@@ -62,8 +65,8 @@ in {
     op = {
       # TODO: add a --substituters flag for any caches mentioned in config?
       nixRealise = if cfg.useNix2
-        then "${nix}/bin/nix build ${optionalString (cfg.verbosity == "build") "-L"}"
-        else "${nix}/bin/nix-store ${optionalString (cfg.verbosity != "build") "-Q"} -r";
+        then "${nixExe "nix"} build ${optionalString (cfg.verbosity == "build") "-L"}"
+        else "${nixExe "nix-store"} ${optionalString (cfg.verbosity != "build") "-Q"} -r";
       query = drvImports: "${ci-query}/bin/ci-query -f ${drvImports}";
       dirty = "${ci-dirty}/bin/ci-dirty";
       realise = drvs: "${config.lib.ci.op.nixRealise} ${toString drvs}"; # --keep-going
@@ -98,6 +101,7 @@ in {
       preferLocalBuild = true;
       allowSubstitutes = false;
       name = "nix-run-wrapper-${binName}";
+      meta.mainProgram = "run";
       defaultCommand = "bash"; # `nix run` execvp's bash by default
       inherit binName;
       inherit (config.bootstrap) runtimeShell;
@@ -154,11 +158,13 @@ in {
           ln -s $package/bin $out/bin
         fi
       '';
-      meta = package.meta or {};
+      meta = package.meta or {} // {
+        mainProgram = binName;
+      };
       passthru = package.passthru or {};
     };
     drvOf = drv: builtins.unsafeDiscardStringContext drv.drvPath;
-    buildDrvs = drvs: "${nix}/bin/nix-build --no-out-link ${builtins.concatStringsSep " " (map drvOf drvs)}";
+    buildDrvs = drvs: "${nixExe "nix-build"} --no-out-link ${builtins.concatStringsSep " " (map drvOf drvs)}";
     buildDrv = drv: buildDrvs [drv];
     logpipe = msg: " | (cat && echo ${msg} >&2)";
     #logpipe = msg: " | (${config.bootstrap.packages.coreutils}/bin/tee >(cat >&2) && echo ${msg} >&2)";
@@ -168,7 +174,7 @@ in {
     buildAnd = drvs: run:
       ''${buildDrvs drvs} > /dev/null && ${run}'';
     buildAndRun = drvs:
-      buildAnd drvs "${nix}/bin/nix run ${toString drvs}";
+      buildAnd drvs "${nixExe "nix"} run ${toString drvs}";
     taskDrvs = builtins.attrValues tasks;
     taskDrvImports = drvImports taskDrvs;
     buildTask = task: let
@@ -251,7 +257,8 @@ in {
         if [[ $# -gt 0 ]]; then
           CONFIG_ARGS=(--argstr configuration "$1")
         fi
-        eval "$(${config.bootstrap.packages.nix}/bin/nix eval --show-trace --raw source -f ${toString ./.} "''${CONFIG_ARGS[@]}")"
+
+        eval "$(${nixExe "nix"} eval --show-trace --raw source -f ${toString ./.} "''${CONFIG_ARGS[@]}")"
       }
 
       ${builtins.concatStringsSep "\n" (mapAttrsToList (name: eval: ''

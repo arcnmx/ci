@@ -75,8 +75,10 @@ in {
     nix = {
       corepkgs = {
         config = mkOption {
-          type = types.attrsOf types.unspecified;
-          default = import <nix/config.nix>;
+          type = types.nullOr (types.attrsOf types.unspecified);
+          default = if versionOlder builtins.nixVersion "2.4"
+            then import <nix/config.nix>
+            else null; # removed in nix 2.4
           defaultText = "import <nix/config.nix>";
           internal = true;
         };
@@ -86,6 +88,10 @@ in {
       };
       config = mkOption {
         type = types.attrsOf types.unspecified;
+      };
+      configText = mkOption {
+        type = types.lines;
+        internal = true;
       };
       configFile = mkOption {
         type = types.path;
@@ -112,7 +118,9 @@ in {
       };
       runtimeShell = mkOption {
         type = types.path;
-        default = storePath (/. + config.nix.corepkgs.config.shell);
+        default = if config.nix.corepkgs.config != null
+          then storePath (/. + config.nix.corepkgs.config.shell)
+          else config.bootstrap.pkgs.runtimeShell;
         defaultText = "corepkgs.shell";
         internal = true;
       };
@@ -120,43 +128,59 @@ in {
         # nix appears to expect these to be available in PATH
         tar = mkOption {
           type = types.package;
-          default = bootstrapStorePath config.nix.corepkgs.config.tar;
+          default = if config.nix.corepkgs.config != null
+            then bootstrapStorePath config.nix.corepkgs.config.tar
+            else config.bootstrap.pkgs.tar;
           defaultText = "corepkgs.tar";
           visible = false;
         };
         gzip = mkOption {
           type = types.package;
-          default = bootstrapStorePath config.nix.corepkgs.config.gzip;
+          default = if config.nix.corepkgs.config != null
+            then bootstrapStorePath config.nix.corepkgs.config.gzip
+            else config.bootstrap.pkgs.gzip;
           defaultText = "corepkgs.gzip";
           visible = false;
         };
         xz = mkOption {
           type = types.package;
-          default = bootstrapStorePath config.nix.corepkgs.config.xz;
+          default = if config.nix.corepkgs.config != null
+            then bootstrapStorePath config.nix.corepkgs.config.xz
+            else config.bootstrap.pkgs.xz;
           defaultText = "corepkgs.xz";
           visible = false;
         };
         bzip2 = mkOption {
           type = types.package;
-          default = bootstrapStorePath config.nix.corepkgs.config.bzip2;
+          default = if config.nix.corepkgs.config != null
+            then bootstrapStorePath config.nix.corepkgs.config.bzip2
+            else config.bootstrap.pkgs.bzip2;
           defaultText = "corepkgs.bzip2";
           visible = false;
         };
         shell = mkOption {
           type = types.package;
-          default = bootstrapStorePath config.nix.corepkgs.config.shell;
+          default = if config.nix.corepkgs.config != null
+            then bootstrapStorePath config.nix.corepkgs.config.shell
+            else config.bootstrap.pkgs.bash;
           defaultText = "corepkgs.shell";
           visible = false;
         };
         coreutils = mkOption {
           type = types.package;
-          default = storePath (/. + config.nix.corepkgs.config.coreutils + "/..");
+          default = if config.nix.corepkgs.config != null
+            then storePath (/. + config.nix.corepkgs.config.coreutils + "/..")
+            else config.bootstrap.pkgs.coreutils;
           defaultText = "corepkgs.coreutils";
           visible = false;
         };
         nix = mkOption {
-          type = types.package;
-          default = storePath (/. + config.nix.corepkgs.config.nixPrefix);
+          type = types.nullOr types.package;
+          default = if config.nix.corepkgs.config != null
+            then storePath (/. + config.nix.corepkgs.config.nixPrefix)
+            else if env.isSet "NIX_BIN_DIR" then
+              storePath (/. + env.get "NIX_BIN_DIR" + "/..")
+            else null;
           defaultText = "corepkgs.nix";
         };
         cachix = mkOption {
@@ -328,29 +352,32 @@ in {
         );
         experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;
       };
-      experimental-features = optional (versionAtLeast builtins.nixVersion "2.4") "nix-command";
-      configFile = let
+      experimental-features = optionals (versionAtLeast builtins.nixVersion "2.4") [ "nix-command" "flakes" "ca-derivations" "recursive-nix" ];
+      configText = let
         toNixValue = v:
           if v == true then "true"
           else if v == false then "false"
           else toString v;
-      in mkOptionDefault (builtins.toFile "nix.conf" ''
-        ${concatStringsSep "\n" (mapAttrsToList (k: v: "${k} = ${toNixValue v}") config.nix.config)}
-        ${config.nix.extraConfig}
-      '');
+      in mkMerge (
+        (mapAttrsToList (k: v: "${k} = ${toNixValue v}") config.nix.config)
+        ++ singleton config.nix.extraConfig
+      );
+      configFile = mkOptionDefault (builtins.toFile "nix.conf" config.nix.configText);
     };
     environment = {
-      bootstrap = mkBefore {
-        inherit (config.bootstrap.packages) nix coreutils gzip tar xz bzip2 shell;
+      bootstrap = optionalAttrs (config.bootstrap.packages.nix != null) {
+        inherit (config.bootstrap.packages) nix;
+      } // optionalAttrs (config.nix.corepkgs.config != null) {
+        inherit (config.bootstrap.packages) coreutils gzip xz bzip2 tar shell;
       } // optionalAttrs (needsCache) {
         inherit (config.bootstrap.packages) ci-query ci-dirty;
       } // optionalAttrs (needsCachix) {
         inherit (config.bootstrap.packages) cachix;
       };
-      shell = mkBefore {
+      shell = {
         inherit (config.bootstrap.pkgs) less;
       };
-      test = mkBefore config.environment.bootstrap;
+      test = config.environment.bootstrap;
     };
     export.env = {
       setup = envBuilder (import ./lib/setup.nix { inherit lib config; });
