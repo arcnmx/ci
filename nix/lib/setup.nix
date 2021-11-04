@@ -7,7 +7,7 @@
   cachixUse = attrNames (filterAttrs (_: c: c.enable && c.publicKey == null) config.cache.cachix);
   inherit (config.bootstrap.packages) cachix coreutils;
   inherit (config.environment) allowRoot;
-  nixSysconfDir = "${config.nix.corepkgs.config.nixSysconfDir}/nix";
+  nixSysconfDir = "${config.nix.corepkgs.config.nixSysconfDir or "/etc"}/nix";
   #inherit (config.nix) configFile;
   setup = ''
     #!@runtimeShell@

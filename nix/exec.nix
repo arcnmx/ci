@@ -98,6 +98,7 @@ in {
       preferLocalBuild = true;
       allowSubstitutes = false;
       name = "nix-run-wrapper-${binName}";
+      meta.mainProgram = "run";
       defaultCommand = "bash"; # `nix run` execvp's bash by default
       inherit binName;
       inherit (config.bootstrap) runtimeShell;
@@ -154,7 +155,9 @@ in {
           ln -s $package/bin $out/bin
         fi
       '';
-      meta = package.meta or {};
+      meta = package.meta or {} // {
+        mainProgram = binName;
+      };
       passthru = package.passthru or {};
     };
     drvOf = drv: builtins.unsafeDiscardStringContext drv.drvPath;
