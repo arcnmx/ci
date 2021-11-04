@@ -6,7 +6,7 @@
 
   shellHook = ''
     export NIX_PATH="ci=$CI_ROOT:$NIX_PATH"
-    CI_CONFIG_FILES=($CI_CONFIG_ROOT/tests/* $CI_CONFIG_ROOT/examples/ci.nix)
+    CI_CONFIG_FILES=($CI_CONFIG_ROOT/tests/*)
 
     gh-actions-generate() {
       for f in "''${CI_CONFIG_FILES[@]}"; do
