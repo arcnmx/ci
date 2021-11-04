@@ -61,6 +61,8 @@ if ! makedir $NIX_STORE_DIR; then
     exit 1
   fi
 fi
+makedir $NIX_STORE_DIR/var
+makedir $NIX_STORE_DIR/var/nix
 if curl -fsSLI $NIX_URL.xz > /dev/null; then
   tar -C $NIX_STORE_DIR --strip-components=1 -xJf <(curl -fSL $NIX_URL.xz)
 else
