@@ -7,10 +7,6 @@ if type -P nix > /dev/null; then
 fi
 
 NIX_VERSION=${NIX_VERSION-latest}
-if [[ $NIX_VERSION = latest ]]; then
-  NIX_VERSION=2.3.16 # HACK: 2.4 not yet supported
-fi
-
 if [[ $NIX_VERSION != latest && $NIX_VERSION != nix-* ]]; then
   NIX_VERSION=nix-$NIX_VERSION
 fi
