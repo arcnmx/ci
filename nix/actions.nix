@@ -164,6 +164,11 @@
         ];
         default = "ubuntu-latest";
       };
+      permissions = mkOption {
+        # TODO: proper types here
+        type = types.unspecified;
+        default = null;
+      };
       env = mkOption {
         type = types.attrsOf types.str;
         default = { };
@@ -226,6 +231,11 @@ in {
       type = types.unspecified;
       default = [ "push" "pull_request" ];
     };
+    permissions = mkOption {
+      # TODO: proper types here
+      type = types.unspecified;
+      default = null;
+    };
     env = mkOption {
       type = types.attrsOf types.str;
       default = { };
@@ -246,9 +256,9 @@ in {
       allowSubstitutes = false;
       nativeBuildInputs = with channels.cipkgs; [ yq ];
       data = builtins.toJSON (filterEmpty {
-        inherit (cfg) name on env;
+        inherit (cfg) name on permissions env;
         jobs = mapAttrs' (_: j: nameValuePair j.id (filterEmpty {
-          inherit (j) name needs runs-on env "if";
+          inherit (j) name needs runs-on permissions env "if";
           ${if j.timeout-minutes != 360 then "timeout-minutes" else null} = j.timeout-minutes;
           steps = map (s: filterEmpty {
             inherit (s) id name "if" run shell "with" env working-directory timeout-minutes shellTemplate;
