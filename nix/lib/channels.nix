@@ -178,8 +178,6 @@ lib: with lib; rec {
     unstable-small = if isLinux
       then "nixos-unstable-small"
       else nixpkgsChannels.unstable;
-    "21.11" = nixpkgsChannels.unstable;
-    "21.11-small" = nixpkgsChannels.unstable-small;
     "22.05" = nixpkgsChannels.unstable;
     "22.05-small" = nixpkgsChannels.unstable-small;
   };
