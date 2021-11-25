@@ -358,8 +358,10 @@ in {
       '');
     };
     environment = {
-      bootstrap = optionalAttrs (config.nix.corepkgs.config != null) {
-        inherit (config.bootstrap.packages) nix coreutils gzip xz bzip2 tar shell;
+      bootstrap = {
+        inherit (config.bootstrap.packages) nix;
+      } // optionalAttrs (config.nix.corepkgs.config != null) {
+        inherit (config.bootstrap.packages) coreutils gzip xz bzip2 tar shell;
       } // optionalAttrs (needsCache) {
         inherit (config.bootstrap.packages) ci-query ci-dirty;
       } // optionalAttrs (needsCachix) {
