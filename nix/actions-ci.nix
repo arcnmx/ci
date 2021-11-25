@@ -47,7 +47,7 @@
         uses = {
           owner = "actions";
           repo = "checkout";
-          version = "v1";
+          version = "v2";
         };
         "with" = cfg.checkoutOptions;
       } // step.checkout or {};
