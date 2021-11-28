@@ -1,0 +1,28 @@
+{
+  "nodes": {
+    "ci": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1570496773,
+        "narHash": "sha256-3UPIJRvNGnVCqqoB6OBLGns4zqkU635PhKC+MhCaY00=",
+        "owner": "arcnmx",
+        "repo": "ci",
+        "rev": "204e0e10ae4d6b844d88eb0c75114880fde47fbd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "arcnmx",
+        "ref": "v0.4",
+        "repo": "ci",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "ci": "ci"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

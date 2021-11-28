@@ -1,0 +1,39 @@
+{
+  "nodes": {
+    "flakes": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "narHash": "sha256-o4X7pE5z4G/PTLgQfBv7zzakn2tZQWUjylZKq+Qp2To=",
+        "path": "/home/arc/projects/nix/flakes/lib",
+        "type": "path"
+      },
+      "original": {
+        "id": "flakes",
+        "type": "indirect"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "narHash": "sha256-CGUQEhhqRhQlgXSJrrOkaErDtAyCGVO3yps8NCKm7Xc=",
+        "path": "/home/arc/projects/nix/nixpkgs-lib",
+        "type": "path"
+      },
+      "original": {
+        "id": "nixpkgs-lib",
+        "type": "indirect"
+      }
+    },
+    "root": {
+      "inputs": {
+        "flakes": "flakes",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

@@ -4,14 +4,7 @@ const { spawn } = require('child_process');
 const path = require('path')
 
 const ci_root = path.resolve(path.join(__dirname, '../../..'));
-const installer_script = path.join(ci_root, 'nix/tools/install.sh');
-
-// provide <ci> and a fallback nixpkgs matching the version of nix installed
-// TODO: option to turn this off?
-let nix_path = core.getInput('nix-path').split(':').filter(p => p !== '');
-nix_path = nix_path.concat([`ci=${ci_root}`]);
-process.env['CI_NIX_PATH_NIXPKGS'] = '1'; // instruct script to add nixpkgs to NIX_PATH
-// TODO: if (nix_path.filter(p => p.startsWith('ci=') || !p.includes('=')).length === 0) ?
+const installer_script = path.join(ci_root, 'actions/nix/install/script.sh');
 
 const installer = spawn('bash', [installer_script], {
   env: Object.assign({}, process.env, {
