@@ -358,7 +358,7 @@ in {
       '');
     };
     environment = {
-      bootstrap = {
+      bootstrap = mapAttrs (_: mkOptionDefault) ({
         inherit (config.bootstrap.packages) nix;
       } // optionalAttrs (config.nix.corepkgs.config != null) {
         inherit (config.bootstrap.packages) coreutils gzip xz bzip2 tar shell;
@@ -366,11 +366,11 @@ in {
         inherit (config.bootstrap.packages) ci-query ci-dirty;
       } // optionalAttrs (needsCachix) {
         inherit (config.bootstrap.packages) cachix;
-      };
-      shell = {
+      });
+      shell = mapAttrs (_: mkOptionDefault) {
         inherit (config.bootstrap.pkgs) less;
       };
-      test = config.environment.bootstrap;
+      test = mapAttrs (_: mkOptionDefault) config.environment.bootstrap;
     };
     export.env = {
       setup = envBuilder (import ./lib/setup.nix { inherit lib config; });
