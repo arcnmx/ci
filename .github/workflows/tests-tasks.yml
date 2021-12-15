@@ -81,7 +81,7 @@ jobs:
         stdin: ${{ runner.temp }}/ci.build.cache
   mac:
     name: tests-tasks-mac
-    runs-on: macOS-latest
+    runs-on: macos-10.15
     steps:
     - id: checkout
       name: git clone
