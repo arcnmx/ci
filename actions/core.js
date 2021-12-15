@@ -92,7 +92,7 @@ exports.nix.version = function() {
 };
 
 exports.nix.versionIs24 = function(version) {
-  return version.startsWith('2.4');
+  return version >= '2.4';
 }
 
 exports.nix.adjustFileAttrs = function(version, file, attrs) {
