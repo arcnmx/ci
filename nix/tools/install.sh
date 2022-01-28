@@ -18,6 +18,10 @@ case "$(uname -s).$(uname -m)" in
   Darwin.x86_64) NIX_SYSTEM=x86_64-darwin;;
 esac
 
+if [[ $NIX_VERSION = latest && $NIX_SYSTEM = *-darwin ]]; then
+  NIX_VERSION=nix-2.5.1 # HACK: 2.6 not yet supported on macos
+fi
+
 if [[ $NIX_VERSION = latest ]]; then
   NIX_VERSION=$(curl -fsSL https://nixos.org/nix/install | grep -o 'nix-[0-9.]*' | tail -n1)
 fi
