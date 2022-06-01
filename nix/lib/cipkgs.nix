@@ -6,6 +6,14 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://hydra.nixos.org/project/nix)
+    "2.9.0" = nixpkgsFor."2.8.1";
+    "2.8.1" = nixpkgsFor."2.8.0";
+    "2.8.0" = nixpkgsSource {
+      rev = "530a53dcbc9437363471167a5e4762c5fcfa34a1";
+      sha256 = "sha256-y53N7TyIkXsjMpOG7RhvqJFGDacLs9HlyHeSTBioqYU=";
+    };
+    "2.7.0" = nixpkgsFor."2.6.1";
+    "2.6.1" = nixpkgsFor."2.6.0";
     "2.6.0" = nixpkgsFor."2.5.1";
     "2.5.1" = nixpkgsFor."2.5.0";
     "2.5.0" = nixpkgsFor."2.4";
@@ -82,8 +90,13 @@ rec {
       rev = "a7ecde854aee5c4c7cd6177f54a99d2c1ff28a31";
       sha256 = "162dywda2dvfj1248afxc45kcrg83appjd0nmdb541hl7rnncf02";
     };
+    "22.05" = nixpkgsSource {
+      # 22.05 release
+      rev = "ce6aa13369b667ac2542593170993504932eb836";
+      sha256 = "0d643wp3l77hv2pmg2fi7vyxn4rwy0iyr8djcw1h5x72315ck9ik";
+    };
   };
-  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor."21.11";
+  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor."22.05";
   nixpkgsPath = builtins.fetchTarball nixpkgsUrl;
   nixpkgs = args: import nixpkgsPath args;
 }
