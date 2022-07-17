@@ -82,7 +82,7 @@ export CI_CONFIG_ROOT="${CI_CONFIG_ROOT-$PWD}"
 
 # nix 2.4 may disable the nix command?
 case $NIX_VERSION in
-  1.*|2.[0123]*)
+  1.*|2.[0123]|2.[0123].*)
     ;;
   *)
     echo 'experimental-features = nix-command' >> /etc/nix/nix.conf
@@ -94,7 +94,7 @@ if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
 fi
 
 # set up a default config
-cat $($NIX_PATH_DIR/nix eval --raw --argstr config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} -f '<ci>' config.nix.configFile) >> /etc/nix/nix.conf
+printf "%s\n" "$($NIX_PATH_DIR/nix eval --raw --argstr config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} -f '<ci>' config.nix.configText)" >> /etc/nix/nix.conf
 
 export_env() {
   case "${CI_PLATFORM-}" in

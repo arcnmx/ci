@@ -92,7 +92,7 @@ exports.nix.version = function() {
 };
 
 exports.nix.versionIs24 = function(version) {
-  return version >= '2.4';
+  return version.localeCompare("2.4", undefined, { numeric: true, sensitivity: 'base' }) != -1
 }
 
 exports.nix.adjustFileAttrs = function(version, file, attrs) {

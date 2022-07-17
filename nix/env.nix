@@ -89,6 +89,10 @@ in {
       config = mkOption {
         type = types.attrsOf types.unspecified;
       };
+      configText = mkOption {
+        type = types.lines;
+        internal = true;
+      };
       configFile = mkOption {
         type = types.path;
         internal = true;
@@ -347,15 +351,16 @@ in {
         experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;
       };
       experimental-features = optionals (versionAtLeast builtins.nixVersion "2.4") [ "nix-command" "flakes" "ca-derivations" "recursive-nix" ];
-      configFile = let
+      configText = let
         toNixValue = v:
           if v == true then "true"
           else if v == false then "false"
           else toString v;
-      in mkOptionDefault (builtins.toFile "nix.conf" ''
-        ${concatStringsSep "\n" (mapAttrsToList (k: v: "${k} = ${toNixValue v}") config.nix.config)}
-        ${config.nix.extraConfig}
-      '');
+      in mkMerge (
+        (mapAttrsToList (k: v: "${k} = ${toNixValue v}") config.nix.config)
+        ++ singleton config.nix.extraConfig
+      );
+      configFile = mkOptionDefault (builtins.toFile "nix.conf" config.nix.configText);
     };
     environment = {
       bootstrap = mapAttrs (_: mkOptionDefault) ({
