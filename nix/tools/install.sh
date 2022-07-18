@@ -23,6 +23,10 @@ if [[ $NIX_VERSION = latest && $NIX_SYSTEM = *-darwin ]]; then
 fi
 
 if [[ $NIX_VERSION = latest ]]; then
+  NIX_VERSION=nix-2.9.2 # HACK: 2.10 seems like a broken mess
+fi
+
+if [[ $NIX_VERSION = latest ]]; then
   NIX_VERSION=$(curl -fsSL https://nixos.org/nix/install | grep -o 'nix-[0-9.]*' | tail -n1)
 fi
 NIX_URL=https://nixos.org/releases/nix/$NIX_VERSION
