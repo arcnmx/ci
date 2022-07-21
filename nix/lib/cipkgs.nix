@@ -6,6 +6,18 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://hydra.nixos.org/project/nix)
+    "2.10.3" = nixpkgsFor."2.10.2";
+    "2.10.2" = nixpkgsSource {
+      rev = "365e1b3a859281cf11b94f87231adeabbdd878a2";
+      sha256 = "sha256-G++2CJ9u0E7NNTAi9n5G8TdDmGJXcIjkJ3NF8cetQB8=";
+    };
+    "2.10.1" = nixpkgsFor."2.10.0";
+    "2.10.0" = nixpkgsSource {
+      rev = "2fa57ed190fd6c7c746319444f34b5917666e5c1";
+      sha256 = "sha256-ZaqFFsSDipZ6KVqriwM34T739+KLYJvNmCWzErjAg7c=";
+    };
+    "2.9.2" = nixpkgsFor."2.9.0";
+    "2.9.1" = nixpkgsFor."2.9.0";
     "2.9.0" = nixpkgsFor."2.8.1";
     "2.8.1" = nixpkgsFor."2.8.0";
     "2.8.0" = nixpkgsSource {
