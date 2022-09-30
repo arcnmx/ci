@@ -6,6 +6,8 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://hydra.nixos.org/project/nix)
+    "2.11.1" = nixpkgsFor."2.11.0";
+    "2.11.0" = nixpkgsFor."2.10.3";
     "2.10.3" = nixpkgsFor."2.10.2";
     "2.10.2" = nixpkgsSource {
       rev = "365e1b3a859281cf11b94f87231adeabbdd878a2";
