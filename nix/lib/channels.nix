@@ -155,6 +155,7 @@ lib: with lib; rec {
       );
       config = {
         checkMetaRecursively = mkOptionDefault true;
+        checkMeta = mkOptionDefault false;
       };
       overlays = let
         overlayChannels = filterAttrs (k: c: k != "nixpkgs" && c.enable) channels;
