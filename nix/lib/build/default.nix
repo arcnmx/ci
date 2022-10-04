@@ -44,7 +44,7 @@
     preBuild = concatMapStringsSep "\n" (t: t.preBuild) tasks'build;
   };
   # TODO: manual derivation rather than using stdenv?
-  buildScriptFor = tasks: config.bootstrap.pkgs.buildPackages.runCommandNoCC config.name ({
+  buildScriptFor = tasks: config.bootstrap.pkgs.buildPackages.runCommand config.name ({
     __structuredAttrs = true;
     attrsPath = "${placeholder "out"}/${(import ../../global.nix).prefix}/attrs.sh";
     preferLocalBuild = true;

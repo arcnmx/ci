@@ -1,8 +1,8 @@
-{ lib, runCommandNoCC, hostPlatform, cacert, config }: with lib; let
+{ lib, runCommand, hostPlatform, cacert, config }: with lib; let
   glibcLocales = listToAttrs (map (glibc:
     lib.nameValuePair (replaceStrings [ "." ] [ "_" ] glibc.version) "${glibc}/lib/locale/locale-archive"
   ) (config.environment.glibcLocales or [ ]));
-in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }@args: runCommandNoCC pname ({
+in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }@args: runCommand pname ({
   inherit cacert;
   inherit (import ../global.nix) prefix;
   inherit (config.bootstrap) runtimeShell;

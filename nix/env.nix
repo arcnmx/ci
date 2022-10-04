@@ -183,7 +183,7 @@ in {
         };
         ci-build = mkOption {
           type = types.package;
-          default = config.bootstrap.pkgs.runCommandNoCC "ci-build.sh" ({
+          default = config.bootstrap.pkgs.runCommand "ci-build.sh" ({
             scriptBuild = ./lib/build/build.sh;
             scriptDirty = ./lib/build/dirty.sh;
             scriptRealise = ./lib/build/realise.sh;
