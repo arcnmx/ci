@@ -14,7 +14,7 @@
         name = "deploy";
         impure = true;
         skip =
-          if env.platform != "gh-actions" || env.gh-event-name != "push" then env.gh-event-name
+          if env.platform != "gh-actions" || env.gh-event-name != "push" then env.gh-event-name or env.platform
           else if env.git-branch != "master" then "branch"
           else if env.get "GIT_DEPLOY_KEY" == null then "missing key"
           else false;

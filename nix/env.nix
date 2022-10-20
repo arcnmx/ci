@@ -30,8 +30,8 @@
         path = toString ../.;
       };
       nmd = {
-        version = config.lib.ci.mkOptionDefault1 "9e7a20e6ee3f6751f699f79c0b299390f81f7bcd";
-        sha256 = config.lib.ci.mkOptionDefault1 "1s49gjn1wapcjn0q4gabi8jwp8k5f18354a9c1vji0hfqsaknxzj";
+        version = config.lib.ci.mkOptionDefault1 "4db11ab82c8a9fdecbc19d290d998c635afe225a";
+        sha256 = config.lib.ci.mkOptionDefault1 "1yn3i25bcpg0zs1yfw0az3d81hkj9gv3ygp9raic06702m59ba2r";
         args = {
           pkgs = mkOptionDefault config.bootstrap.pkgs;
           inherit lib;
