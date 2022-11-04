@@ -1,6 +1,6 @@
 name: nix build
 runs:
-  using: node12
+  using: node16
   main: main.js
 description: Build a nix derivation
 inputs:

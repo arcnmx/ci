@@ -1,6 +1,6 @@
 name: nix install
 runs:
-  using: node12
+  using: node16
   main: main.js
 description: Install nix in the GitHub Actions virtual environment.
 inputs:
