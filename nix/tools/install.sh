@@ -123,8 +123,13 @@ fi
 
 case "${CI_PLATFORM-}" in
   gh-actions)
-    echo "::set-output name=version::$NIX_VERSION" >&2
-    echo "::set-output name=nix-path::${NIX_PATH-}" >&2
+    if [[ -n "${GITHUB_OUTPUT-}" ]]; then
+      echo "version=$NIX_VERSION" >> $GITHUB_OUTPUT
+      echo "nix-path=${NIX_PATH-}" >> $GITHUB_OUTPUT
+    else
+      echo "::set-output name=version::$NIX_VERSION" >&2
+      echo "::set-output name=nix-path::${NIX_PATH-}" >&2
+    fi
     if [[ -n "${GITHUB_PATH-}" ]]; then
       echo "$NIX_PATH_DIR" >> $GITHUB_PATH
     else

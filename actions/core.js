@@ -5,6 +5,8 @@ const crypto = require("crypto");
 
 const envfile = process.env['GITHUB_ENV'];
 const pathfile = process.env['GITHUB_PATH'];
+const outputfile = process.env['GITHUB_OUTPUT'];
+const statefile = process.env['GITHUB_STATE'];
 const delim = crypto.randomBytes(32).toString('hex');
 
 process.env['PWD'] = process.cwd();
@@ -27,7 +29,15 @@ exports.warning = function(msg) {
 };
 
 exports.setOutput = function(name, value) {
-  writeCommand(`::set-output name=${name}::${value}`);
+  if (outputfile) {
+    fs.appendFileSync(outputfile, `${name}=${value}${os.EOL}`);
+  } else {
+    writeCommand(`::set-output name=${name}::${value}`);
+  }
+};
+
+exports.saveState = function(name, value) {
+  fs.appendFileSync(statefile, `${name}=${value}${os.EOL}`);
 };
 
 exports.addPath = function(path) {
