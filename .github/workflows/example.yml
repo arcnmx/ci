@@ -140,63 +140,6 @@ jobs:
         command: ci-build-cache
         quiet: false
         stdin: ${{ runner.temp }}/ci.build.cache
-  mac:
-    name: example-mac
-    runs-on: macos-10.15
-    steps:
-    - id: checkout
-      name: git clone
-      uses: actions/checkout@v1
-      with:
-        submodules: true
-    - id: nix-install
-      name: nix install
-      uses: ./actions/nix/install
-    - id: ci-setup
-      name: nix setup
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.job.mac.run.bootstrap
-        quiet: false
-    - id: ci-dirty
-      name: nix test dirty
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.job.mac.run.test
-        command: ci-build-dirty
-        quiet: false
-        stdout: ${{ runner.temp }}/ci.build.dirty
-    - id: ci-test
-      name: nix test build
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.job.mac.run.test
-        command: ci-build-realise
-        ignore-exit-code: true
-        quiet: false
-        stdin: ${{ runner.temp }}/ci.build.dirty
-    - env:
-        CI_EXIT_CODE: ${{ steps.ci-test.outputs.exit-code }}
-      id: ci-summary
-      name: nix test results
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.job.mac.run.test
-        command: ci-build-summarise
-        quiet: false
-        stdin: ${{ runner.temp }}/ci.build.dirty
-        stdout: ${{ runner.temp }}/ci.build.cache
-    - env:
-        CACHIX_SIGNING_KEY: ${{ secrets.CACHIX_SIGNING_KEY }}
-      id: ci-cache
-      if: always()
-      name: nix test cache
-      uses: ./actions/nix/run
-      with:
-        attrs: ci.job.mac.run.test
-        command: ci-build-cache
-        quiet: false
-        stdin: ${{ runner.temp }}/ci.build.cache
   old:
     name: example-old
     runs-on: ubuntu-latest

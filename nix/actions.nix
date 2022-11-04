@@ -160,7 +160,7 @@
         type = types.enum [
           "ubuntu-latest" "ubuntu-20.04" "ubuntu-18.04"
           "windows-latest" "windows-2022" "windows-2019" "windows-2016"
-          "macos-latest" "macos-11" "macos-10.15"
+          "macos-latest" "macos-12" "macos-11" "macos-10.15"
         ];
         default = "ubuntu-latest";
       };
