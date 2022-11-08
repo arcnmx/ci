@@ -86,7 +86,9 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
   install -d $out/$prefix $out/bin
 
   for pkg in $packages; do
-    cp --no-preserve=mode -rsf $pkg/* $out/
+    if ! cp --no-preserve=mode -rsf $pkg/* $out/; then
+      cp --no-preserve=mode -Lrsf $pkg/* $out/
+    fi
   done
 
   substituteBin() {
