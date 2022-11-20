@@ -6,7 +6,7 @@
   #import = (builtins.import ./lib/scope.nix { }).nixPathImport {
   #  nixpkgs = nixpkgsPath;
   #};
-  libPath = builtins.import ./lib/lib.nix;
+  libPath = builtins.import ./lib/lib.nix + "/lib";
   lib = builtins.import libPath;
 in with lib; let
   pkgs'args = { };

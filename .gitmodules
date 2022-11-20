@@ -1,3 +1,4 @@
 [submodule "nix/lib/lib"]
 	path = nix/lib/lib
 	url = https://github.com/arcnmx/nixpkgs-lib.git
+	branch = master

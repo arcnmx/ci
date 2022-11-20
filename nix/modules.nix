@@ -2,8 +2,8 @@
   libPath = import ./lib/lib.nix;
   module = { config, lib, ... }: with lib; {
     imports = [
-      (libPath + "/modules/assertions.nix")
-      (libPath + "/modules/meta.nix")
+      (libPath + "/nixos/modules/misc/assertions.nix")
+      (libPath + "/nixos/modules/misc/meta.nix")
     ];
 
     config._module = {
