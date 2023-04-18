@@ -50,7 +50,7 @@
       system:
     </para>
     <screen>
-      <prompt>$</prompt> <userinput>export NIX_PATH=$NIX_PATH:ci=https://github.com/arcnmx/ci/archive/v0.5.tar.gz</userinput>
+      <prompt>$</prompt> <userinput>export NIX_PATH=$NIX_PATH:ci=https://github.com/arcnmx/ci/archive/v0.6.tar.gz</userinput>
     </screen>
     <para>
       This allows the channel to be easily referred to while testing locally, like so:
@@ -65,7 +65,7 @@
       are still required to include the channel name in <literal>NIX_PATH</literal> in some way:
     </para>
     <screen>
-      <prompt>$</prompt> <userinput>nix-channel --add https://github.com/arcnmx/ci/archive/v0.5.tar.gz ci</userinput>
+      <prompt>$</prompt> <userinput>nix-channel --add https://github.com/arcnmx/ci/archive/v0.6.tar.gz ci</userinput>
       <prompt>$</prompt> <userinput>nix-channel --update</userinput>
       <prompt>$</prompt> <userinput>export NIX_PATH=$NIX_PATH:ci=/xxx</userinput>
     </screen>
@@ -94,10 +94,10 @@
     </para>
     <itemizedlist>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/ci/blob/v0.5/examples/ci.nix#blob-path"> Example</link> and <link xlink:href="https://github.com/arcnmx/ci/runs/251473028">associated dashboard</link>
+        <link xlink:href="https://github.com/arcnmx/ci/blob/v0.6/examples/ci.nix#blob-path"> Example</link> and <link xlink:href="https://github.com/arcnmx/ci/runs/251473028">associated dashboard</link>
       </para></listitem>
       <listitem><para>
-        <link xlink:href="https://github.com/arcnmx/ci/tree/v0.5/tests">CI Tests</link>
+        <link xlink:href="https://github.com/arcnmx/ci/tree/v0.6/tests">CI Tests</link>
       </para></listitem>
       <listitem><para>
         <link xlink:href="https://github.com/arcnmx/nixexprs-rust/blob/master/ci.nix#blob-path">rust channel tests</link>

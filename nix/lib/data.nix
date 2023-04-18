@@ -1,6 +1,6 @@
 { ... }@args: {
   ciRepoInfo = rec {
-    latestVersion = false;
+    latestVersion = true;
     version = "0.6";
     releaseName = "v${version}";
     releaseRef = "refs/tags/${releaseName}";
