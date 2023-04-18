@@ -1,10 +1,5 @@
 { config, pkgs, lib, env, ... }: with lib; {
-  ci.gh-actions = {
-    checkoutVersion = "v3";
-    checkoutOptions = {
-      fetch-depth = 0;
-    };
-  };
+  ci.gh-actions.checkoutOptions.fetch-depth = 0;
   tasks = {
     build.inputs = [ config.doc.manual ];
     deploy = let

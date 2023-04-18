@@ -9,7 +9,7 @@ jobs:
     steps:
     - id: checkout
       name: git clone
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
       with:
         submodules: true
     - id: nix-install
@@ -68,7 +68,7 @@ jobs:
     steps:
     - id: checkout
       name: git clone
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
       with:
         submodules: true
     - id: nix-install
@@ -197,7 +197,7 @@ jobs:
     steps:
     - id: checkout
       name: git clone
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
       with:
         submodules: true
     - id: nix-install
@@ -254,7 +254,7 @@ jobs:
     steps:
     - id: checkout
       name: git clone
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
       with:
         submodules: true
     - id: nix-install
