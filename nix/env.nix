@@ -352,7 +352,8 @@ in {
         );
         experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;
       };
-      experimental-features = optionals (versionAtLeast builtins.nixVersion "2.4") [ "nix-command" "flakes" "ca-derivations" "recursive-nix" ];
+      experimental-features = optionals (versionAtLeast builtins.nixVersion "2.4") [ "nix-command" "flakes" "recursive-nix" ]
+        ++ optional false "ca-derivations";
       configText = let
         toNixValue = v:
           if v == true then "true"

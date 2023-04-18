@@ -48,7 +48,6 @@
       channels.nixpkgs = mkForce "18.09";
     };
     mac = {
-      ci.gh-actions.enable = mkForce false;
       system = "x86_64-darwin";
     };
   };

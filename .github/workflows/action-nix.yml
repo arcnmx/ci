@@ -23,6 +23,7 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
+        - macos-10.15
         nix-version:
         - latest
         - '2.3'
@@ -47,6 +48,7 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
+        - macos-10.15
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v1
@@ -62,6 +64,7 @@ jobs:
       matrix:
         os:
         - ubuntu-latest
+        - macos-10.15
         nix2:
         - true
         - false

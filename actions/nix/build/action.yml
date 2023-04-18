@@ -15,19 +15,19 @@ inputs:
     default: ""
   add-path:
     description: Add the resulting build output to PATH
-    default: false
+    default: "false"
   options:
     description: Extra options to pass to nix
     default: ""
   quiet:
     description: Silence logging
-    default: false
+    default: "false"
   nix-path:
     description: Extra nix path arguments, colon-separated
     default: ""
   nix2:
     description: Use the nix 2.0 interface
-    default: true
+    default: "true"
 outputs:
   out-link:
     description: Link created by the build

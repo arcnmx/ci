@@ -1,4 +1,4 @@
-{ lib, pkgs, config, ... }: {
+{ pkgs, config, ... }: {
   ci = {
     url = ".";
     gh-actions.enable = true;
@@ -17,7 +17,6 @@
       system = "x86_64-linux";
     };
     mac = {
-      ci.gh-actions.enable = lib.mkForce false;
       system = "x86_64-darwin";
     };
   };

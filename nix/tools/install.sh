@@ -16,11 +16,8 @@ case "$(uname -s).$(uname -m)" in
   Linux.i?86) NIX_SYSTEM=i686-linux;;
   Linux.aarch64) NIX_SYSTEM=aarch64-linux;;
   Darwin.x86_64) NIX_SYSTEM=x86_64-darwin;;
+  Darwin.arm64|Darwin.aarch64) NIX_SYSTEM=aarch64-darwin;;
 esac
-
-if [[ $NIX_VERSION = latest && $NIX_SYSTEM = *-darwin ]]; then
-  NIX_VERSION=nix-2.5.1 # HACK: 2.6 not yet supported on macos
-fi
 
 if [[ $NIX_VERSION = latest ]]; then
   NIX_VERSION=$(curl -fsSL https://nixos.org/nix/install | grep -o 'nix-[0-9.]*' | tail -n1)
@@ -37,28 +34,37 @@ makedir() {
   sudo mkdir -pm 0755 $1 && sudo chown $(id -u) $1
 }
 
+installer_fallback() {
+  NIX_INSTALLER=$1
+  NIX_STORE_DIR=$HOME/nix-install
+  mkdir $NIX_STORE_DIR
+}
+
+NIX_INSTALLER=${NIX_INSTALLER-}
 NIX_STORE_DIR=/nix
 makedir /etc/nix
-if ! makedir $NIX_STORE_DIR; then
+if [[ -n $NIX_INSTALLER ]]; then
+  installer_fallback "$NIX_INSTALLER"
+elif ! makedir $NIX_STORE_DIR; then
   if [[ $NIX_SYSTEM = *-darwin ]]; then
     # macos catalina mounts root readonly
     if sudo mount -uw /; then
       # if SIP is disabled this will still work...
       makedir $NIX_STORE_DIR
-    else
+    elif /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -B >/dev/null 2>&1; then
       # otherwise best we can do is tell macos to make us a symlink
       # see also: https://github.com/NixOS/nix/pull/3212
       NIX_STORE_CANON=/opt/nix
       makedir $NIX_STORE_CANON
       echo -e "nix\\t$NIX_STORE_CANON" | sudo tee -a /etc/synthetic.conf > /dev/null
-      if ! /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -B; then
-        echo "failed to create synthetic link" >&2
-        exit 1
-      fi
+      /System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util -B
+      export NIX_IGNORE_SYMLINK_STORE=1
+    else
+      installer_fallback --daemon
       export NIX_IGNORE_SYMLINK_STORE=1
     fi
   else
-    exit 1
+    installer_fallback --no-daemon
   fi
 fi
 makedir $NIX_STORE_DIR/var
@@ -68,18 +74,37 @@ if curl -fsSLI $NIX_URL.xz > /dev/null; then
 else
   tar -C $NIX_STORE_DIR --strip-components=1 -xjf <(curl -fSL $NIX_URL.bz2)
 fi
-rm $NIX_STORE_DIR/*.sh
 
-NIX_STORE_NIX=$(cd $NIX_STORE_DIR/store && echo *-nix-2*)
-NIX_STORE_CACERT=$(cd $NIX_STORE_DIR/store && echo *-nss-cacert-*)
-NIX_PROFILE="$NIX_STORE_DIR/store/$NIX_STORE_NIX/etc/profile.d/nix.sh"
+nixvars() {
+  NIX_STORE_NIX=$(cd $NIX_STORE_DIR/store && echo *-nix-2*)
+  NIX_STORE_CACERT=$(cd $NIX_STORE_DIR/store && echo *-nss-cacert-*)
+  NIX_PROFILE="$NIX_STORE_DIR/store/$NIX_STORE_NIX/etc/profile.d/nix.sh"
 
-export NIX_SSL_CERT_FILE="$NIX_STORE_DIR/store/$NIX_STORE_CACERT/etc/ssl/certs/ca-bundle.crt"
-export NIX_PATH_DIR="$NIX_STORE_DIR/store/$NIX_STORE_NIX/bin"
+  export NIX_PATH_DIR="$NIX_STORE_DIR/store/$NIX_STORE_NIX/bin"
+  if [[ $NIX_INSTALLER = --daemon ]]; then
+    set +eu
+    source $NIX_STORE_DIR/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+    set -eu
+  else
+    export NIX_SSL_CERT_FILE="$NIX_STORE_DIR/store/$NIX_STORE_CACERT/etc/ssl/certs/ca-bundle.crt"
+  fi
+}
 
-$NIX_PATH_DIR/nix-store --init
-$NIX_PATH_DIR/nix-store --load-db < $NIX_STORE_DIR/.reginfo
-rm $NIX_STORE_DIR/.reginfo
+if [[ -n $NIX_INSTALLER ]]; then
+  INVOKED_FROM_INSTALL_IN=1 $NIX_STORE_DIR/install \
+    --no-channel-add --no-modify-profile \
+    --daemon-user-count ${NIX_USER_COUNT-8} \
+    $NIX_INSTALLER
+  rm -rf $NIX_STORE_DIR
+  NIX_STORE_DIR=/nix
+  nixvars
+else
+  nixvars
+
+  $NIX_PATH_DIR/nix-store --init
+  $NIX_PATH_DIR/nix-store --load-db < $NIX_STORE_DIR/.reginfo
+fi
+rm -f $NIX_STORE_DIR/*.sh $NIX_STORE_DIR/.reginfo
 export CI_CONFIG_ROOT="${CI_CONFIG_ROOT-$PWD}"
 
 # nix 2.4 may disable the nix command?

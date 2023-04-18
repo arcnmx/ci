@@ -27,10 +27,10 @@ inputs:
     default: ""
   ignore-exit-code:
     description: Ignore command failures
-    default: false
+    default: "false"
   quiet:
     description: Silence logging
-    default: true
+    default: "true"
   nix-path:
     description: Extra nix path arguments, colon-separated
     default: ""

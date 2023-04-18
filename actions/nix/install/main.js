@@ -12,6 +12,7 @@ let nix_path = core.getInput('nix-path').split(':').filter(p => p !== '');
 nix_path = nix_path.concat([`ci=${ci_root}`]);
 process.env['CI_NIX_PATH_NIXPKGS'] = '1'; // instruct script to add nixpkgs to NIX_PATH
 // TODO: if (nix_path.filter(p => p.startsWith('ci=') || !p.includes('=')).length === 0) ?
+process.env['NIX_INSTALLER'] = core.getInput('daemon') !== 'false' ? '--daemon' : '';
 
 const installer = spawn('bash', [installer_script], {
   env: Object.assign({}, process.env, {
