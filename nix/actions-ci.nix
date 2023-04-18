@@ -37,7 +37,7 @@
     # TODO: if conditionals
 
     runs-on = if platform.isLinux then "ubuntu-latest"
-      else if platform.isDarwin then "macos-10.15"
+      else if platform.isDarwin then "macos-latest"
       else throw "unknown GitHub Actions platform for ${platform.system}";
     inherit env;
     step = step // {

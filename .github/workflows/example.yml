@@ -193,7 +193,7 @@ jobs:
         stdin: ${{ runner.temp }}/ci.build.cache
   mac:
     name: example-mac
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
     - id: checkout
       name: git clone
