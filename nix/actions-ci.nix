@@ -47,7 +47,7 @@
         uses = {
           owner = "actions";
           repo = "checkout";
-          version = "v1";
+          version = cfg.checkoutVersion;
         };
         "with" = cfg.checkoutOptions;
       } // step.checkout or {};
@@ -67,6 +67,10 @@ in {
     checkoutOptions = mkOption {
       type = types.attrsOf types.unspecified;
       defaultText = ''{ submodules = true; }'';
+    };
+    checkoutVersion = mkOption {
+      type = types.str;
+      default = "v1";
     };
     name = mkOption {
       type = types.str;
