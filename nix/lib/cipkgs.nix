@@ -5,7 +5,19 @@ rec {
     inherit sha256;
   };
   nixpkgsFor = {
-    # pinned nixpkgs evaluations bundled with nix binary releases (https://hydra.nixos.org/project/nix)
+    # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
+    "2.15.0" = nixpkgsFor."2.14.1";
+    "2.14.1" = nixpkgsFor."2.14.0";
+    "2.14.0" = nixpkgsFor."2.13.3";
+    "2.13.3" = nixpkgsFor."2.13.2";
+    "2.13.2" = nixpkgsFor."2.13.1";
+    "2.13.1" = nixpkgsFor."2.13.0";
+    "2.13.0" = nixpkgsSource {
+      rev = "04a75b2eecc0acf6239acf9dd04485ff8d14f425";
+      sha256 = "sha256-jy1LB8HOMKGJEGXgzFRLDU1CBGL0/LlkolgnqIsF0D8=";
+    };
+    "2.12.1" = nixpkgsFor."2.12.0";
+    "2.12.0" = nixpkgsFor."2.11.1";
     "2.11.1" = nixpkgsFor."2.11.0";
     "2.11.0" = nixpkgsFor."2.10.3";
     "2.10.3" = nixpkgsFor."2.10.2";
