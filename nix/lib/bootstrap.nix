@@ -42,7 +42,7 @@
     #!@runtimeShell@
     set -eu
 
-    exec @nix@/bin/nix run $(@nix@/bin/nix-build --no-out-link @runtimeDrv@) "$@"
+    exec @nix@/bin/nix run $(@nix@/bin/nix-build --no-out-link @runtimeDrv@\!out) "$@"
   '';
 
   runtimeDrv = builtins.unsafeDiscardStringContext config.export.env.test.drvPath;

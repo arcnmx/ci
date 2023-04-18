@@ -18,7 +18,7 @@ drv_valid() {
   if drv_skipped $1; then
     return 1
   else
-    nix-store -u -q --hash $1 > /dev/null 2>&1
+    nix-store -u -q --hash "$1" > /dev/null 2>&1
   fi
 }
 
@@ -121,7 +121,7 @@ if (( ${#CI_DRV_DIRTY[@]} > 0 && $CI_EXIT_CODE != 0 )) || [[ -n ${CI_DRY_RUN-} ]
         else
           drv_report $input fail 1
           if [[ -z ${CI_DRY_RUN-} ]]; then
-            nix-store -r $input --dry-run 2>&1 | (@gnugrep@/bin/grep -vFe 'these derivations will be built' -e "$input" | @gnused@/bin/sed -n '/^these paths will be fetched/q;p' >&2 || true)
+            nix-store -r "$input" --dry-run 2>&1 | (@gnugrep@/bin/grep -vFe 'these derivations will be built' -e "$input" | @gnused@/bin/sed -n '/^these paths will be fetched/q;p' >&2 || true)
             # TODO: parse the above list and show more info via nix-store query or something?
           fi
         fi

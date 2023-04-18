@@ -5,12 +5,14 @@
     else "${exe}";
   cfg = config.exec;
   tasks = mapAttrs (_: { drv, ... }: drv) config.tasks;
+  nixRequiresDrvPath = versionAtLeast builtins.nixVersion "2.15.0";
 in {
   options.exec = {
     useNix2 = mkOption {
       # 2.3 introduced --print-build-logs, and was unsuitable for CI prior to that
       type = types.bool;
-      default = versionAtLeast builtins.nixVersion "2.3"; # TODO: check bootstrap.packages.nix version, which may differ?
+      # TODO: check bootstrap.packages.nix version, which may differ?
+      default = versionAtLeast builtins.nixVersion "2.3" && !nixRequiresDrvPath;
     };
     verbosity = mkOption {
       # TODO: make quiet delay logs until after build completes?
@@ -69,7 +71,7 @@ in {
         else "${nixExe "nix-store"} ${optionalString (cfg.verbosity != "build") "-Q"} -r";
       query = drvImports: "${ci-query}/bin/ci-query -f ${drvImports}";
       dirty = "${ci-dirty}/bin/ci-dirty";
-      realise = drvs: "${config.lib.ci.op.nixRealise} ${toString drvs}"; # --keep-going
+      realise = drvs: "${config.lib.ci.op.nixRealise} ${drvs}"; # --keep-going
       filter = drvImports:
         config.lib.ci.op.query drvImports
         + " | ${config.lib.ci.op.dirty}";
@@ -79,8 +81,22 @@ in {
         + " | ${config.lib.ci.op.dirty} -v"
         + logpipe "${config.lib.ci.colours.magenta}::::::::::::::::::::::::::::: ${config.lib.ci.colours.clear}";
       buildDirty = drvImports: config.lib.ci.op.realise "$(cat <(${config.lib.ci.op.filter drvImports}))";
-      build = drvs: config.lib.ci.op.realise (map drvOf drvs);
-      sourceOps = ''
+      build = drvs: config.lib.ci.op.realise (drvPathsOf drvs);
+      sourceOps = let
+        transformDrvs = if nixRequiresDrvPath then ''
+          local op_in OP_IN=()
+          for op_in in "$@"; do
+            if [[ $op_in = *.drv ]]; then
+              OP_IN+=("''${op_in}"\!out)
+            else
+              OP_IN+=("$op_in")
+            fi
+          done
+        '' else ''
+          local OP_IN=("$@")
+        '';
+        realiseIn = config.lib.ci.op.realise "\${OP_IN[@]+\"\${OP_IN[@]}\"}";
+      in ''
         function opFilter {
           ${config.lib.ci.op.filter "$1"}
         }
@@ -89,10 +105,13 @@ in {
         }
 
         function opRealise {
+          ${transformDrvs}
           if [[ "${config.lib.ci.op.realise ""}" = *nix-build* ]]; then
-            ${config.lib.ci.op.realise ''"$@"''} --no-out-link > /dev/null # we don't want it to spit out paths
+            ${realiseIn} --no-out-link > /dev/null # we don't want it to spit out paths
+          elif [[ "${config.lib.ci.op.realise ""}" = *nix-store* ]]; then
+            ${realiseIn} > /dev/null # we don't want it to spit out paths
           else
-            ${config.lib.ci.op.realise ''"$@"''} --no-link
+            ${realiseIn} --no-link
           fi
         }
       '';
@@ -164,7 +183,10 @@ in {
       passthru = package.passthru or {};
     };
     drvOf = drv: builtins.unsafeDiscardStringContext drv.drvPath;
-    buildDrvs = drvs: "${nixExe "nix-build"} --no-out-link ${builtins.concatStringsSep " " (map drvOf drvs)}";
+    drvPathOutputs = drv: if nixRequiresDrvPath then "${drv}!*" else drv;
+    drvPathOf = drv: drvPathOutputs (drvOf drv);
+    drvPathsOf = drvs: escapeShellArgs (map drvPathOf drvs);
+    buildDrvs = drvs: "${nixExe "nix-build"} --no-out-link ${drvPathsOf drvs}";
     buildDrv = drv: buildDrvs [drv];
     logpipe = msg: " | (cat && echo ${msg} >&2)";
     #logpipe = msg: " | (${config.bootstrap.packages.coreutils}/bin/tee >(cat >&2) && echo ${msg} >&2)";
