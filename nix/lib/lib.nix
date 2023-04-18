@@ -1,4 +1,4 @@
 if builtins.pathExists ./lib/default.nix then ./lib else builtins.fetchTarball {
-  url = "https://github.com/arcnmx/nixpkgs-lib/archive/1778ac429eb4c75bec2b0738b9b022c687a34fda.tar.gz";
-  sha256 = "13yn6aay2mwr8k36pq79sv6navkd47219jphs18ckk902l7r108f";
+  url = "https://github.com/arcnmx/nixpkgs-lib/archive/d21353de66de858fb2998ed76da67a62ccc252dd.tar.gz";
+  sha256 = "00kx3agiv5d61mjhw5lc3lq1s0frvy2pz9cs4cs3ghwvz68r057j";
 }
