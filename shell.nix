@@ -7,8 +7,13 @@
     done
   '';
   test-all = writeShellScriptBin "test-all" ''
-    for f in ${CI_CONFIG_FILES}; do
-      if ! nix run --arg config $f -f ${CI_CONFIG_ROOT} test; then
+    if [[ $# -gt 0 ]]; then
+      CI_CONFIG_FILES=("$@")
+    else
+      CI_CONFIG_FILES=(${CI_CONFIG_FILES})
+    fi
+    for f in "''${CI_CONFIG_FILES[@]}"; do
+      if ! nix run --arg config "$(realpath $f || echo $f)" -f ${CI_CONFIG_ROOT} test; then
         echo failed test $f >&2
         exit 1
       fi
