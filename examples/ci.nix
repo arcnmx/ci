@@ -1,5 +1,6 @@
 { pkgs, lib, config, channels, ... }: with lib; {
   name = "example";
+  ci.version = "v0.5";
 
   # https://github.com/arcnmx/ci/actions?workflow=example
   ci.gh-actions.enable = true;
@@ -62,7 +63,7 @@
           uses = {
             owner = "actions";
             repo = "checkout";
-            version = "v1";
+            version = "v3";
           };
         } {
           name = "example.sh";
@@ -72,6 +73,7 @@
       };
     };
     docs = ./docs.nix;
+    deploy = ./deploy.nix;
   };
 
   # May be necessary to include depending on what you're testing or building...

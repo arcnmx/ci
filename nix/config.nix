@@ -1,10 +1,11 @@
 { config, configPath, lib, ... }: with lib; let
   cfg = config.ci;
+  inherit (import ./lib/data.nix { }) ciRepoInfo;
 in {
   options.ci = {
     version = mkOption {
       type = types.str;
-      default = "master";
+      default = ciRepoInfo.releaseName;
     };
     url = mkOption {
       type = types.str;
