@@ -14,10 +14,10 @@
       git-commit = null; # TODO: fall back to IFD pulling this info from .git?
       git-ref = null; # TODO: ditto, just read .git/HEAD?
       git-tag = let
-        tag = builtins.match "refs/tags/(.*)" config.lib.ci.env.git-ref;
+        tag = builtins.match "refs/tags/(.*)" (toString config.lib.ci.env.git-ref);
       in if tag != null then head tag else null;
       git-branch = let
-        branch = builtins.match "refs/heads/(.*)" config.lib.ci.env.git-ref;
+        branch = builtins.match "refs/heads/(.*)" (toString config.lib.ci.env.git-ref);
       in if branch != null then head branch else null;
       slug = null; # TODO: fall back to getting this from the git remote url..?
       tmpdir = null;
