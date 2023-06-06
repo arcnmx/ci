@@ -171,7 +171,7 @@ lib: with lib; rec {
     };
   });
   nixpkgsChannels = { nixpkgsChannels, isLinux }: {
-    stable = "22.11";
+    stable = "23.05";
     stable-small = "${config.lib.nixpkgsChannels.stable}-small";
     unstable = if isLinux
       then "nixos-unstable"

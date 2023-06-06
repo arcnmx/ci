@@ -54,7 +54,7 @@ jobs:
     - uses: actions/checkout@v1
     - uses: ./actions/nix/install
       with:
-        nix-path: nixpkgs=https://nixos.org/channels/nixos-19.09/nixexprs.tar.xz
+        nix-path: nixpkgs=https://nixos.org/channels/nixos-23.05/nixexprs.tar.xz
     - uses: ./actions/nix/run
       with:
         attrs: nixpkgs.hello

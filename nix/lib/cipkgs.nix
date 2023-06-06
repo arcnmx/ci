@@ -6,10 +6,13 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
+    "2.16.1" = nixpkgsFor."2.16.0";
+    "2.16.0" = nixpkgsFor."2.15.1";
     "2.15.1" = nixpkgsFor."2.15.0";
     "2.15.0" = nixpkgsFor."2.14.1";
     "2.14.1" = nixpkgsFor."2.14.0";
     "2.14.0" = nixpkgsFor."2.13.3";
+    "2.13.4" = nixpkgsFor."2.13.3";
     "2.13.3" = nixpkgsFor."2.13.2";
     "2.13.2" = nixpkgsFor."2.13.1";
     "2.13.1" = nixpkgsFor."2.13.0";
@@ -127,8 +130,13 @@ rec {
       rev = "4d2b37a84fad1091b9de401eb450aae66f1a741e";
       sha256 = "11w3wn2yjhaa5pv20gbfbirvjq6i3m7pqrq2msf0g7cv44vijwgw";
     };
+    "23.05" = nixpkgsSource {
+      # 23.05 release
+      rev = "4ecab3273592f27479a583fb6d975d4aba3486fe";
+      sha256 = "10wn0l08j9lgqcw8177nh2ljrnxdrpri7bp0g7nvrsn9rkawvlbf";
+    };
   };
-  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor."22.11";
+  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor."23.05";
   nixpkgsPath = builtins.fetchTarball nixpkgsUrl;
   nixpkgs = args: import nixpkgsPath args;
 }
