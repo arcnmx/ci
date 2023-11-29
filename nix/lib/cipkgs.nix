@@ -6,12 +6,14 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
+    "2.19." = nixpkgsFor."2.19.2";
     "2.19.2" = nixpkgsFor."2.19.1";
     "2.19.1" = nixpkgsFor."2.19.0";
     "2.19.0" = nixpkgsSource {
       rev = "9eb24edd6a0027fed010ccfe300a9734d029983c";
       sha256 = "sha256-nsQo2/mkDUFeAjuu92p0dEqhRvHHiENhkKVIV1y0/Oo=";
     };
+    "2.18." = nixpkgsFor."2.18.1";
     "2.18.1" = nixpkgsSource {
       rev = "31ed632c692e6a36cfc18083b88ece892f863ed4";
       sha256 = "sha256-CJz71xhCLlRkdFUSQEL0pIAAfcnWFXMzd9vXhPrnrEg=";
@@ -20,17 +22,22 @@ rec {
       rev = "a3d30b525535e3158221abc1a957ce798ab159fe";
       sha256 = "sha256-trXDytVCqf3KryQQQrHOZKUabu1/lB8/ndOAuZKQrOE=";
     };
+    "2.17." = nixpkgsFor."2.17.1";
     "2.17.1" = nixpkgsFor."2.17.0";
     "2.17.0" = nixpkgsFor."2.16.1";
+    "2.16." = nixpkgsFor."2.16.2";
     "2.16.2" = nixpkgsFor."2.16.1";
     "2.16.1" = nixpkgsFor."2.16.0";
     "2.16.0" = nixpkgsFor."2.15.1";
+    "2.15." = nixpkgsFor."2.15.3";
     "2.15.3" = nixpkgsFor."2.15.2";
     "2.15.2" = nixpkgsFor."2.15.1";
     "2.15.1" = nixpkgsFor."2.15.0";
     "2.15.0" = nixpkgsFor."2.14.1";
+    "2.14." = nixpkgsFor."2.14.1";
     "2.14.1" = nixpkgsFor."2.14.0";
     "2.14.0" = nixpkgsFor."2.13.3";
+    "2.13." = nixpkgsFor."2.13.6";
     "2.13.6" = nixpkgsFor."2.13.5";
     "2.13.5" = nixpkgsFor."2.13.4";
     "2.13.4" = nixpkgsFor."2.13.3";
@@ -41,10 +48,13 @@ rec {
       rev = "04a75b2eecc0acf6239acf9dd04485ff8d14f425";
       sha256 = "sha256-jy1LB8HOMKGJEGXgzFRLDU1CBGL0/LlkolgnqIsF0D8=";
     };
+    "2.12." = nixpkgsFor."2.12.1";
     "2.12.1" = nixpkgsFor."2.12.0";
     "2.12.0" = nixpkgsFor."2.11.1";
+    "2.11." = nixpkgsFor."2.11.1";
     "2.11.1" = nixpkgsFor."2.11.0";
     "2.11.0" = nixpkgsFor."2.10.3";
+    "2.10." = nixpkgsFor."2.10.3";
     "2.10.3" = nixpkgsFor."2.10.2";
     "2.10.2" = nixpkgsSource {
       rev = "365e1b3a859281cf11b94f87231adeabbdd878a2";
@@ -161,7 +171,7 @@ rec {
       sha256 = "10wn0l08j9lgqcw8177nh2ljrnxdrpri7bp0g7nvrsn9rkawvlbf";
     };
   };
-  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor."23.05";
+  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."23.05";
   nixpkgsPath = builtins.fetchTarball nixpkgsUrl;
   nixpkgs = args: import nixpkgsPath args;
 }
