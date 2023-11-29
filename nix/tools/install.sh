@@ -112,7 +112,7 @@ case $NIX_VERSION in
   1.*|2.[0123]|2.[0123].*)
     ;;
   *)
-    echo 'experimental-features = nix-command' >> /etc/nix/nix.conf
+    echo 'experimental-features = nix-command' | sudo bash -c 'cat >> /etc/nix/nix.conf'
     ;;
 esac
 
@@ -121,7 +121,8 @@ if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
 fi
 
 # set up a default config
-printf "%s\n" "$($NIX_PATH_DIR/nix eval --raw --argstr config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} -f '<ci>' config.nix.configText)" >> /etc/nix/nix.conf
+NIX_EXTRA_CONF="$($NIX_PATH_DIR/nix eval --raw --argstr config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} -f '<ci>' config.nix.configText)"
+printf "%s\n" "$NIX_EXTRA_CONF" | sudo bash -c 'cat >> /etc/nix/nix.conf'
 
 export_env() {
   case "${CI_PLATFORM-}" in
