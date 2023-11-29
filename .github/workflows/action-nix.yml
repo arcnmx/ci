@@ -27,12 +27,12 @@ jobs:
         nix-version:
         - latest
         - '2.3'
-        - 2.2.1
+        - 2.13.6
         exclude:
         - os: macos-latest
           nix-version: '2.3'
         - os: macos-latest
-          nix-version: 2.2.1
+          nix-version: 2.13.6
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3

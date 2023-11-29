@@ -6,7 +6,7 @@ description: Install nix in the GitHub Actions virtual environment.
 inputs:
   version:
     description: nix version to install
-    default: latest # examples: latest, 2.3, 2.2.1
+    default: latest # examples: latest, 2.3, 2.15.3
   timeout:
     description: minutes to wait before failing
     default: "5"
