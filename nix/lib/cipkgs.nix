@@ -170,8 +170,13 @@ rec {
       rev = "4ecab3273592f27479a583fb6d975d4aba3486fe";
       sha256 = "10wn0l08j9lgqcw8177nh2ljrnxdrpri7bp0g7nvrsn9rkawvlbf";
     };
+    "23.11" = nixpkgsSource {
+      # 23.11 release
+      rev = "057f9aecfb71c4437d2b27d3323df7f93c010b7e";
+      sha256 = "1ndiv385w1qyb3b18vw13991fzb9wg4cl21wglk89grsfsnra41k";
+    };
   };
-  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."23.05";
+  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."23.11";
   nixpkgsPath = builtins.fetchTarball nixpkgsUrl;
   nixpkgs = args: import nixpkgsPath args;
 }
