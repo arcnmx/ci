@@ -1,6 +1,6 @@
 { pkgs, lib, config, channels, ... }: with lib; {
   name = "example";
-  ci.version = "v0.6";
+  ci.version = "v0.7";
 
   # https://github.com/arcnmx/ci/actions?workflow=example
   ci.gh-actions.enable = true;

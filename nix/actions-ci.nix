@@ -70,7 +70,7 @@ in {
     };
     checkoutVersion = mkOption {
       type = types.str;
-      default = "v3";
+      default = "v4";
     };
     name = mkOption {
       type = types.str;

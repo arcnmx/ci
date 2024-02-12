@@ -1,6 +1,6 @@
 name: nix run
 runs:
-  using: node16
+  using: node20
   main: main.js
 description: Run a command with nix packages in the environment
 inputs:
