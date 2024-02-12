@@ -156,11 +156,18 @@
         type = fudge;
         default = [ ];
       };
-      runs-on = mkOption {
-        type = types.enum [
+      runs-on = let
+        githubHostedRunners = [
           "ubuntu-latest" "ubuntu-22.04" "ubuntu-20.04" "ubuntu-18.04"
           "windows-latest" "windows-2022" "windows-2019"
-          "macos-latest" "macos-12" "macos-11" "macos-10.15"
+          "macos-latest" "macos-14" "macos-13" "macos-12" "macos-11" "macos-10.15"
+        ];
+      in mkOption {
+        type = types.oneOf [
+          (types.enum githubHostedRunners)
+          (types.listOf types.str)
+          types.str
+          types.attrs
         ];
         default = "ubuntu-latest";
       };
