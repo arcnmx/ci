@@ -36,9 +36,9 @@
     # TODO: needs (jobId deps)
     # TODO: if conditionals
 
-    runs-on = if platform.isLinux then "ubuntu-latest"
+    runs-on = mkDefault (if platform.isLinux then "ubuntu-latest"
       else if platform.isDarwin then "macos-latest"
-      else throw "unknown GitHub Actions platform for ${platform.system}";
+      else throw "unknown GitHub Actions platform for ${platform.system}");
     inherit env;
     step = step // {
       checkout = {

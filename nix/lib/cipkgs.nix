@@ -6,7 +6,17 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.19." = nixpkgsFor."2.19.2";
+    "2.20." = nixpkgsFor."2.20.1";
+    "2.20.1" = nixpkgsFor."2.20.0";
+    "2.20.0" = nixpkgsSource {
+      rev = "a1982c92d8980a0114372973cbdfe0a307f1bdea";
+      sha256 = "sha256-K5eJHmL1/kev6WuqyqqbS1cdNnSidIZ3jeqJ7GbrYnQ=";
+    };
+    "2.19." = nixpkgsFor."2.19.3";
+    "2.19.3" = nixpkgsSource {
+      rev = "9ba29e2346bc542e9909d1021e8fd7d4b3f64db0";
+      sha256 = "sha256-/nqLrNU297h3PCw4QyDpZKZEUHmialJdZW2ceYFobds=";
+    };
     "2.19.2" = nixpkgsFor."2.19.1";
     "2.19.1" = nixpkgsFor."2.19.0";
     "2.19.0" = nixpkgsSource {
