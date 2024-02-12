@@ -2,8 +2,78 @@
 
 set -euo pipefail
 
+export_env() {
+  case "${CI_PLATFORM-}" in
+    gh-actions)
+      if [[ -n "${GITHUB_ENV-}" ]]; then
+        echo "$1=$2" >> $GITHUB_ENV
+      else
+        echo "::set-env name=$1::$2" >&2
+      fi
+      ;;
+    azure-pipelines)
+      echo "##vso[task.setvariable variable=$1]$2" >&2
+      ;;
+  esac
+}
+
+set_output() {
+  case "${CI_PLATFORM-}" in
+    gh-actions)
+      if [[ -n "${GITHUB_OUTPUT-}" ]]; then
+        echo "$1=$2" >> $GITHUB_OUTPUT
+      else
+        echo "::set-output name=$1::$2" >&2
+      fi
+      ;;
+  esac
+}
+
+add_path() {
+  case "${CI_PLATFORM-}" in
+    gh-actions)
+      if [[ -n "${GITHUB_PATH-}" ]]; then
+        echo "$1" >> $GITHUB_PATH
+      else
+        echo "::add-path::$1" >&2
+      fi
+      ;;
+    azure-pipelines)
+      sudo chown 0:0 / || true
+      cat >> ~/.bash_profile <<EOF
+export PATH="$1:\$PATH"
+EOF
+      ;;
+  esac
+}
+
+setup_nix_path() {
+  export CI_CONFIG_ROOT="${CI_CONFIG_ROOT-$PWD}"
+  export_env CI_CONFIG_ROOT "$CI_CONFIG_ROOT"
+
+  export_env NIX_BIN_DIR "$NIX_PATH_DIR"
+
+  if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
+    export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$($NIX_PATH_DIR/nix eval --raw -f "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
+  fi
+  if [[ -n ${NIX_PATH-} ]]; then
+    export_env NIX_PATH "$NIX_PATH"
+  fi
+  set_output nix-path "${NIX_PATH-}"
+}
+
 if type -P nix > /dev/null; then
-  return
+  export NIX_PATH_DIR=$(dirname "$(readlink -f "$(type -P nix)")")
+
+  NIX_VERSION=$(nix --version)
+  if [[ $NIX_VERSION = "nix "* ]]; then
+    NIX_VERSION=${NIX_VERSION##* }
+    export_env NIX_VERSION "$NIX_VERSION"
+    set_output version "$NIX_VERSION"
+  fi
+
+  setup_nix_path
+  exit
 fi
 
 NIX_VERSION=${NIX_VERSION-latest}
@@ -105,7 +175,6 @@ else
   $NIX_PATH_DIR/nix-store --load-db < $NIX_STORE_DIR/.reginfo
 fi
 rm -f $NIX_STORE_DIR/*.sh $NIX_STORE_DIR/.reginfo
-export CI_CONFIG_ROOT="${CI_CONFIG_ROOT-$PWD}"
 
 # nix 2.4 may disable the nix command?
 case $NIX_VERSION in
@@ -116,61 +185,28 @@ case $NIX_VERSION in
     ;;
 esac
 
-if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
-  export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$($NIX_PATH_DIR/nix eval --raw -f "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
-fi
+setup_nix_path
 
 # set up a default config
 NIX_EXTRA_CONF="$($NIX_PATH_DIR/nix eval --raw --argstr config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} -f '<ci>' config.nix.configText)"
 printf "%s\n" "$NIX_EXTRA_CONF" | sudo bash -c 'cat >> /etc/nix/nix.conf'
 
-export_env() {
-  case "${CI_PLATFORM-}" in
-    gh-actions)
-      if [[ -n "${GITHUB_ENV-}" ]]; then
-        echo "$1=$2" >> $GITHUB_ENV
-      else
-        echo "::set-env name=$1::$2" >&2
-      fi
-      ;;
-    azure-pipelines)
-      echo "##vso[task.setvariable variable=$1]$2" >&2
-      ;;
-  esac
-}
-
 export_env NIX_VERSION "$NIX_VERSION"
 export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
-export_env NIX_BIN_DIR "$NIX_PATH_DIR"
-export_env CI_CONFIG_ROOT "$CI_CONFIG_ROOT"
-if [[ -n ${NIX_PATH-} ]]; then
-  export_env NIX_PATH "$NIX_PATH"
-fi
 if [[ -n ${NIX_IGNORE_SYMLINK_STORE-} ]]; then
   export_env NIX_IGNORE_SYMLINK_STORE "$NIX_IGNORE_SYMLINK_STORE"
 fi
 
+set_output version "$NIX_VERSION"
+add_path "$NIX_PATH_DIR"
 case "${CI_PLATFORM-}" in
   gh-actions)
-    if [[ -n "${GITHUB_OUTPUT-}" ]]; then
-      echo "version=$NIX_VERSION" >> $GITHUB_OUTPUT
-      echo "nix-path=${NIX_PATH-}" >> $GITHUB_OUTPUT
-    else
-      echo "::set-output name=version::$NIX_VERSION" >&2
-      echo "::set-output name=nix-path::${NIX_PATH-}" >&2
-    fi
-    if [[ -n "${GITHUB_PATH-}" ]]; then
-      echo "$NIX_PATH_DIR" >> $GITHUB_PATH
-    else
-      echo "::add-path::$NIX_PATH_DIR" >&2
-    fi
     sudo chown 0:0 / || true
     ;;
   azure-pipelines)
     sudo chown 0:0 / || true
     cat >> ~/.bash_profile <<EOF
 
-export PATH="$NIX_PATH_DIR:\$PATH"
 #source "$NIX_PROFILE"
 EOF
     ;;
