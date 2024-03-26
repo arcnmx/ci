@@ -47,6 +47,13 @@ EOF
   esac
 }
 
+maketemp() {
+  local MKTEMP_PREFIX=$1
+  shift
+
+  mktemp "$@" --tmpdir "${MKTEMP_PREFIX}.XXXXXXXXXX" || mktemp "$@"
+}
+
 nix_eval() {
   local NIX_EVAL_FILE=$1 NIX_EVAL_ATTR=$2 NIX_EVAL_OUT
   shift 2
@@ -64,7 +71,7 @@ setup_nix_path() {
   export_env NIX_BIN_DIR "$NIX_PATH_DIR"
 
   NIX_USER_CONF=$(nix_eval '<ci>' config.nix.settingsText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
-  NIX_USER_CONF_FILE=$(mktemp --tmpdir ci.nix.conf.XXXXXXXXXX || mktemp)
+  NIX_USER_CONF_FILE=$(maketemp ci.nix.user.conf)
   printf "%s" "$NIX_USER_CONF" > "$NIX_USER_CONF_FILE"
   export NIX_USER_CONF_FILES="${NIX_USER_CONF_FILES-${XDG_CONFIG_HOME-$HOME/.config}/nix/nix.conf}:$NIX_USER_CONF_FILE"
   export_env NIX_USER_CONF_FILES "$NIX_USER_CONF_FILES"
@@ -117,7 +124,9 @@ NIX_URL=$NIX_URL/$NIX_BASE.tar
 echo "Downloading $NIX_BASE..." >&2
 
 makedir() {
-  sudo mkdir -pm 0755 $1 && sudo chown $(id -u) $1
+  if ! mkdir -pm 0755 "$1"; then
+    sudo mkdir -pm 0755 "$1" && sudo chown $(id -u) "$1"
+  fi
 }
 
 installer_fallback() {
@@ -128,7 +137,6 @@ installer_fallback() {
 
 NIX_INSTALLER=${NIX_INSTALLER-}
 NIX_STORE_DIR=/nix
-makedir /etc/nix
 if [[ -n $NIX_INSTALLER ]]; then
   installer_fallback "$NIX_INSTALLER"
 elif ! makedir $NIX_STORE_DIR; then
@@ -195,9 +203,16 @@ rm -f $NIX_STORE_DIR/*.sh $NIX_STORE_DIR/.reginfo
 setup_nix_path
 
 # set up a default config
-if [[ ! -e /etc/nix/nix.conf ]]; then
+if [[ ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]]; then
   NIX_CONF=$(nix_eval '<ci>' config.nix.configText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
-  printf "%s" "$NIX_CONF" | sudo bash -c "cat > /etc/nix/nix.conf"
+  if [[ $NIX_INSTALLER = --daemon ]]; then
+    makedir /etc/nix
+    printf "%s" "$NIX_CONF" | sudo bash -c "cat > /etc/nix/nix.conf"
+  else
+    export NIX_CONF_DIR=$(maketemp ci.nix.conf -d)
+    printf "%s" "$NIX_CONF" > "$NIX_CONF_DIR/nix.conf"
+    export_env NIX_CONF_DIR "$NIX_CONF_DIR"
+  fi
 fi
 
 export_env NIX_VERSION "$NIX_VERSION"
