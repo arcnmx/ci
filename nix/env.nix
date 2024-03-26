@@ -72,7 +72,9 @@
   #envBuilder = { pname, packages, command ? "", ... }: throw "aaa";
 in {
   options = {
-    nix = {
+    nix = let
+      configValueType = with types; oneOf [ str bool int (listOf str) ];
+    in {
       corepkgs = {
         config = mkOption {
           type = types.nullOr (types.attrsOf types.unspecified);
@@ -87,7 +89,11 @@ in {
         type = types.listOf types.str;
       };
       config = mkOption {
-        type = types.attrsOf types.unspecified;
+        type = types.attrsOf configValueType;
+      };
+      extraConfig = mkOption {
+        type = types.lines;
+        default = "";
       };
       configText = mkOption {
         type = types.lines;
@@ -95,11 +101,22 @@ in {
       };
       configFile = mkOption {
         type = types.path;
-        internal = true;
+        description = "/etc/nix/nix.conf";
       };
-      extraConfig = mkOption {
+      settings = mkOption {
+        type = types.attrsOf configValueType;
+      };
+      extraSettings = mkOption {
         type = types.lines;
         default = "";
+      };
+      settingsText = mkOption {
+        type = types.lines;
+        internal = true;
+      };
+      settingsFile = mkOption {
+        type = types.path;
+        description = "appended to $NIX_USER_CONF_FILES";
       };
     };
     nixpkgs = mkOption {
@@ -335,35 +352,49 @@ in {
     };
   };
   config = {
-    nix = {
+    nix = let
+      nixListSep = k: {
+        builders = ":";
+        extra-builders = ":";
+      }.${k} or " ";
+      toNixValue = k: v:
+        if v == true then "true"
+        else if v == false then "false"
+        else if isList v then concatMapStringsSep (nixListSep k) (toNixValue k) v
+        else toString v;
+      toNixConf = settings: extra: mkMerge (
+        (mapAttrsToList (k: v: "${k} = ${toNixValue k v}") settings)
+        ++ singleton extra
+      );
+      substituters = mapAttrsToList (_: s: s.url) config.cache.substituters;
+      publicKeys = concatLists (mapAttrsToList (_: s: s.publicKeys) config.cache.substituters);
+      hasPublicKeys = any (s: s.publicKeys != []) (attrValues config.cache.substituters);
+    in {
       config = mapAttrs (_: mkOptionDefault) {
         cores = 0;
         max-jobs = 8;
         http2 = false;
-        max-silent-time = 60 * 30;
         fsync-metadata = false;
-        use-sqlite-wal = true;
-      } // {
-        substituters = mkIf (config.cache.substituters != { }) (
-          mapAttrsToList (_: s: s.url) config.cache.substituters
-        );
-        trusted-public-keys = mkIf (any (s: s.publicKeys != []) (attrValues config.cache.substituters)) (
-          concatLists (mapAttrsToList (_: s: s.publicKeys) config.cache.substituters)
-        );
-        experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;
+        max-silent-time = 60 * 30;
+        substituters = [ nixosCache ] ++ optionals (config.cache.substituters != { }) substituters;
+        trusted-public-keys = [ nixosKey ] ++ optionals hasPublicKeys publicKeys;
+        trusted-users = let
+          user = env.get "USER";
+        in [ "root" "@wheel" ] ++ optional (user != null) user;
+      };
+      settings = {
+        max-silent-time = mkOptionDefault config.nix.config.max-silent-time;
+        accept-flake-config = mkIf (elem "flakes" config.nix.experimental-features) (mkOptionDefault true);
+        extra-substituters = mkIf (config.cache.substituters != { }) substituters;
+        extra-trusted-public-keys = mkIf hasPublicKeys publicKeys;
+        extra-experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;
       };
       experimental-features = optionals (versionAtLeast builtins.nixVersion "2.4") [ "nix-command" "flakes" "recursive-nix" ]
         ++ optional false "ca-derivations";
-      configText = let
-        toNixValue = v:
-          if v == true then "true"
-          else if v == false then "false"
-          else toString v;
-      in mkMerge (
-        (mapAttrsToList (k: v: "${k} = ${toNixValue v}") config.nix.config)
-        ++ singleton config.nix.extraConfig
-      );
+      configText = toNixConf config.nix.config config.nix.extraConfig;
       configFile = mkOptionDefault (builtins.toFile "nix.conf" config.nix.configText);
+      settingsText = toNixConf config.nix.settings config.nix.extraSettings;
+      settingsFile = mkOptionDefault (builtins.toFile "nix.user.conf" config.nix.settingsText);
     };
     environment = {
       bootstrap = mapAttrs (_: mkOptionDefault) (optionalAttrs (config.bootstrap.packages.nix != null) {
