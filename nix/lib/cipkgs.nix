@@ -1,4 +1,12 @@
 rec {
+  getNixpkgsHashFor = { version }: let
+    # nix eval -f nix/lib/cipkgs.nix getNixpkgsHashFor.sourceInfo --argstr version 2.10.3
+    nix = builtins.getFlake "github:NixOS/nix/${version}";
+  in {
+    sourceInfo = {
+      inherit (nix.inputs.nixpkgs.sourceInfo) rev narHash;
+    };
+  };
   nixpkgsSource = { rev, sha256 }: {
     name = "source";
     url = "https://github.com/nixos/nixpkgs/archive/${rev}.tar.gz";
@@ -6,13 +14,23 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.20." = nixpkgsFor."2.20.1";
+    "2.21." = nixpkgsFor."2.20.0";
+    "2.21.0" = nixpkgsSource {
+      rev = "b550fe4b4776908ac2a861124307045f8e717c8e";
+      sha256 = "sha256-7kkJQd4rZ+vFrzWu8sTRtta5D1kBG0LSRYAfhtmMlSo=";
+    };
+    "2.20." = nixpkgsFor."2.20.5";
+    "2.20.5" = nixpkgsFor."2.20.4";
+    "2.20.4" = nixpkgsFor."2.20.3";
+    "2.20.3" = nixpkgsFor."2.20.2";
+    "2.20.2" = nixpkgsFor."2.20.1";
     "2.20.1" = nixpkgsFor."2.20.0";
     "2.20.0" = nixpkgsSource {
       rev = "a1982c92d8980a0114372973cbdfe0a307f1bdea";
       sha256 = "sha256-K5eJHmL1/kev6WuqyqqbS1cdNnSidIZ3jeqJ7GbrYnQ=";
     };
     "2.19." = nixpkgsFor."2.19.3";
+    "2.19.4" = nixpkgsFor."2.19.3";
     "2.19.3" = nixpkgsSource {
       rev = "9ba29e2346bc542e9909d1021e8fd7d4b3f64db0";
       sha256 = "sha256-/nqLrNU297h3PCw4QyDpZKZEUHmialJdZW2ceYFobds=";
@@ -23,7 +41,11 @@ rec {
       rev = "9eb24edd6a0027fed010ccfe300a9734d029983c";
       sha256 = "sha256-nsQo2/mkDUFeAjuu92p0dEqhRvHHiENhkKVIV1y0/Oo=";
     };
-    "2.18." = nixpkgsFor."2.18.1";
+    "2.18." = nixpkgsFor."2.18.2";
+    "2.18.2" = nixpkgsSource {
+      rev = "9ba29e2346bc542e9909d1021e8fd7d4b3f64db0";
+      sha256 = "sha256-/nqLrNU297h3PCw4QyDpZKZEUHmialJdZW2ceYFobds=";
+    };
     "2.18.1" = nixpkgsSource {
       rev = "31ed632c692e6a36cfc18083b88ece892f863ed4";
       sha256 = "sha256-CJz71xhCLlRkdFUSQEL0pIAAfcnWFXMzd9vXhPrnrEg=";
@@ -32,10 +54,12 @@ rec {
       rev = "a3d30b525535e3158221abc1a957ce798ab159fe";
       sha256 = "sha256-trXDytVCqf3KryQQQrHOZKUabu1/lB8/ndOAuZKQrOE=";
     };
-    "2.17." = nixpkgsFor."2.17.1";
+    "2.17." = nixpkgsFor."2.17.2";
+    "2.17.2" = nixpkgsFor."2.17.1";
     "2.17.1" = nixpkgsFor."2.17.0";
     "2.17.0" = nixpkgsFor."2.16.1";
-    "2.16." = nixpkgsFor."2.16.2";
+    "2.16." = nixpkgsFor."2.16.3";
+    "2.16.3" = nixpkgsFor."2.16.2";
     "2.16.2" = nixpkgsFor."2.16.1";
     "2.16.1" = nixpkgsFor."2.16.0";
     "2.16.0" = nixpkgsFor."2.15.1";
@@ -151,6 +175,10 @@ rec {
     "2.3.17" = nixpkgsSource {
       rev = "022caabb5f2265ad4006c1fa5b1ebe69fb0c3faf";
       sha256 = "sha256-lkA5X3VNMKirvA+SUzvEhfA7XquWLci+CGi505YFAIs=";
+    };
+    "2.3.18" = nixpkgsSource {
+      rev = "9b19f5e77dd906cb52dade0b7bd280339d2a1f3d";
+      sha256 = "sha256-rCIsyE80jgiOU78gCWN3A0wE0tR2GI5nH6MlS+HaaSQ=";
     };
     "2.2.1" = nixpkgsSource {
       rev = "d26f11d38903768bf10036ce70d67e981056424b";
