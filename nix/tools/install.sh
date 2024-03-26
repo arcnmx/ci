@@ -47,14 +47,37 @@ EOF
   esac
 }
 
+maketemp() {
+  local MKTEMP_PREFIX=$1
+  shift
+
+  mktemp "$@" --tmpdir "${MKTEMP_PREFIX}.XXXXXXXXXX" || mktemp "$@"
+}
+
+nix_eval() {
+  local NIX_EVAL_FILE=$1 NIX_EVAL_ATTR=$2 NIX_EVAL_OUT
+  shift 2
+
+  NIX_EVAL_OUT="$($NIX_PATH_DIR/nix-instantiate --eval --json "$NIX_EVAL_FILE" -A "$NIX_EVAL_ATTR" "$@")"
+  NIX_EVAL_OUT="${NIX_EVAL_OUT#\"}"
+  NIX_EVAL_OUT="${NIX_EVAL_OUT%\"}"
+  printf "$NIX_EVAL_OUT"
+}
+
 setup_nix_path() {
   export CI_CONFIG_ROOT="${CI_CONFIG_ROOT-$PWD}"
   export_env CI_CONFIG_ROOT "$CI_CONFIG_ROOT"
 
   export_env NIX_BIN_DIR "$NIX_PATH_DIR"
 
+  NIX_USER_CONF=$(nix_eval '<ci>' config.nix.settingsText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
+  NIX_USER_CONF_FILE=$(maketemp ci.nix.user.conf)
+  printf "%s" "$NIX_USER_CONF" > "$NIX_USER_CONF_FILE"
+  export NIX_USER_CONF_FILES="${NIX_USER_CONF_FILES-${XDG_CONFIG_HOME-$HOME/.config}/nix/nix.conf}:$NIX_USER_CONF_FILE"
+  export_env NIX_USER_CONF_FILES "$NIX_USER_CONF_FILES"
+
   if [[ -n ${CI_NIX_PATH_NIXPKGS-} ]]; then
-    export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$($NIX_PATH_DIR/nix eval --raw -f "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
+    export NIX_PATH="${NIX_PATH-}${NIX_PATH+:}nixpkgs=$(nix_eval "$CI_ROOT/nix/lib/cipkgs.nix" nixpkgsUrl.url)"
   fi
   if [[ -n ${NIX_PATH-} ]]; then
     export_env NIX_PATH "$NIX_PATH"
@@ -101,7 +124,9 @@ NIX_URL=$NIX_URL/$NIX_BASE.tar
 echo "Downloading $NIX_BASE..." >&2
 
 makedir() {
-  sudo mkdir -pm 0755 $1 && sudo chown $(id -u) $1
+  if ! mkdir -pm 0755 "$1"; then
+    sudo mkdir -pm 0755 "$1" && sudo chown $(id -u) "$1"
+  fi
 }
 
 installer_fallback() {
@@ -112,7 +137,6 @@ installer_fallback() {
 
 NIX_INSTALLER=${NIX_INSTALLER-}
 NIX_STORE_DIR=/nix
-makedir /etc/nix
 if [[ -n $NIX_INSTALLER ]]; then
   installer_fallback "$NIX_INSTALLER"
 elif ! makedir $NIX_STORE_DIR; then
@@ -176,20 +200,20 @@ else
 fi
 rm -f $NIX_STORE_DIR/*.sh $NIX_STORE_DIR/.reginfo
 
-# nix 2.4 may disable the nix command?
-case $NIX_VERSION in
-  1.*|2.[0123]|2.[0123].*)
-    ;;
-  *)
-    echo 'experimental-features = nix-command' | sudo bash -c 'cat >> /etc/nix/nix.conf'
-    ;;
-esac
-
 setup_nix_path
 
 # set up a default config
-NIX_EXTRA_CONF="$($NIX_PATH_DIR/nix eval --raw --argstr config ${CI_CONFIG-$CI_ROOT/tests/empty.nix} -f '<ci>' config.nix.configText)"
-printf "%s\n" "$NIX_EXTRA_CONF" | sudo bash -c 'cat >> /etc/nix/nix.conf'
+if [[ ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]]; then
+  NIX_CONF=$(nix_eval '<ci>' config.nix.configText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
+  if [[ $NIX_INSTALLER = --daemon ]]; then
+    makedir /etc/nix
+    printf "%s" "$NIX_CONF" | sudo bash -c "cat > /etc/nix/nix.conf"
+  else
+    export NIX_CONF_DIR=$(maketemp ci.nix.conf -d)
+    printf "%s" "$NIX_CONF" > "$NIX_CONF_DIR/nix.conf"
+    export_env NIX_CONF_DIR "$NIX_CONF_DIR"
+  fi
+fi
 
 export_env NIX_VERSION "$NIX_VERSION"
 export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
