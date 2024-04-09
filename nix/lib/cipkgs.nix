@@ -14,13 +14,15 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.21." = nixpkgsFor."2.21.1";
+    "2.21." = nixpkgsFor."2.21.2";
+    "2.21.2" = nixpkgsFor."2.21.1";
     "2.21.1" = nixpkgsFor."2.21.0";
     "2.21.0" = nixpkgsSource {
       rev = "b550fe4b4776908ac2a861124307045f8e717c8e";
       sha256 = "sha256-7kkJQd4rZ+vFrzWu8sTRtta5D1kBG0LSRYAfhtmMlSo=";
     };
-    "2.20." = nixpkgsFor."2.20.5";
+    "2.20." = nixpkgsFor."2.20.6";
+    "2.20.6" = nixpkgsFor."2.20.5";
     "2.20.5" = nixpkgsFor."2.20.4";
     "2.20.4" = nixpkgsFor."2.20.3";
     "2.20.3" = nixpkgsFor."2.20.2";
