@@ -14,6 +14,11 @@ process.env['CI_NIX_PATH_NIXPKGS'] = '1'; // instruct script to add nixpkgs to N
 // TODO: if (nix_path.filter(p => p.startsWith('ci=') || !p.includes('=')).length === 0) ?
 process.env['NIX_INSTALLER'] = core.getInput('daemon') !== 'false' ? '--daemon' : '';
 
+let gh_token = core.getInput('github-access-token');
+if (gh_token !== '') {
+  process.env['NIX_GITHUB_TOKEN'] = gh_token
+}
+
 const installer = spawn('bash', [installer_script], {
   env: Object.assign({}, process.env, {
     CI_PLATFORM: 'gh-actions',
