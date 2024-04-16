@@ -13,6 +13,9 @@ inputs:
   daemon:
     description: Install nix in multi-user mode
     default: "false"
+  github-access-token:
+    description: The token nix uses when fetching from GitHub
+    default: ${{ github.token }}
   nix-path:
     description: NIX_PATH channels to make available to the job
     default: "" # example: nixpkgs=https://nixos.org/channels/nixos-19.09/nixexprs.tar.xz

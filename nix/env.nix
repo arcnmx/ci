@@ -388,6 +388,9 @@ in {
         extra-substituters = mkIf (config.cache.substituters != { }) substituters;
         extra-trusted-public-keys = mkIf hasPublicKeys publicKeys;
         extra-experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;
+        extra-access-tokens = let
+          ghToken = env.get "NIX_GITHUB_TOKEN";
+        in mkIf (ghToken != null) [ "github.com=${ghToken}" ];
       };
       experimental-features = optionals (versionAtLeast builtins.nixVersion "2.4") [ "nix-command" "flakes" "recursive-nix" ]
         ++ optional false "ca-derivations";
