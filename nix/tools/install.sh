@@ -124,7 +124,7 @@ NIX_URL=$NIX_URL/$NIX_BASE.tar
 echo "Downloading $NIX_BASE..." >&2
 
 makedir() {
-  if ! mkdir -pm 0755 "$1"; then
+  if ! mkdir -pm 0755 "$1" 2>/dev/null; then
     sudo mkdir -pm 0755 "$1" && sudo chown $(id -u) "$1"
   fi
 }
