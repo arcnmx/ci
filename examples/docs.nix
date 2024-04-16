@@ -23,12 +23,14 @@
 
           cp -a ${config.doc.manual}/share/doc/ci/* ./
 
-          git add -A .
-          git config user.name ghost
-          git config user.email ghost@konpa.ku
-          git commit -m "manual of $gitCommit"
+          if [[ -n $(git status --porcelain) ]]; then
+            git add -A .
+            git config user.name ghost
+            git config user.email ghost@konpa.ku
+            git commit -m "manual of $gitCommit"
 
-          git push -q origin HEAD:$docsBranch
+            git push -q origin HEAD:$docsBranch
+          fi
         '';
       };
     in {
