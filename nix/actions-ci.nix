@@ -37,7 +37,8 @@
     # TODO: if conditionals
 
     runs-on = mkDefault (if platform.isLinux then "ubuntu-latest"
-      else if platform.isDarwin then "macos-latest"
+      else if platform.isDarwin && platform.isAarch64 then "macos-latest"
+      else if platform.isDarwin then "macos-13"
       else throw "unknown GitHub Actions platform for ${platform.system}");
     inherit env;
     step = step // {

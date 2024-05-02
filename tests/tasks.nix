@@ -16,8 +16,11 @@
     linux = {
       system = "x86_64-linux";
     };
-    mac = {
+    mac-x86 = {
       system = "x86_64-darwin";
+    };
+    mac = {
+      system = "aarch64-darwin";
     };
   };
   tasks = {
