@@ -70,6 +70,11 @@ setup_nix_path() {
 
   export_env NIX_BIN_DIR "$NIX_PATH_DIR"
 
+  if [[ -z ${USER-} ]]; then
+    export USER=$(id -u -n)
+  else
+    export USER=$USER
+  fi
   NIX_USER_CONF=$(nix_eval '<ci>' config.nix.settingsText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
   NIX_USER_CONF_FILE=$(maketemp ci.nix.user.conf)
   printf "%s" "$NIX_USER_CONF" > "$NIX_USER_CONF_FILE"
@@ -203,11 +208,16 @@ rm -f $NIX_STORE_DIR/*.sh $NIX_STORE_DIR/.reginfo
 setup_nix_path
 
 # set up a default config
-if [[ ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]]; then
+if [[ -n $NIX_INSTALLER ]] || [[ ! -e /etc/nix/nix.conf && -z ${NIX_CONF_DIR-} ]]; then
   NIX_CONF=$(nix_eval '<ci>' config.nix.configText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
   if [[ $NIX_INSTALLER = --daemon ]]; then
     makedir /etc/nix
     printf "%s" "$NIX_CONF" | sudo bash -c "cat > /etc/nix/nix.conf"
+    if [[ $NIX_SYSTEM = *-darwin ]]; then
+      launchctl stop org.nixos.nix-daemon || true
+      sleep 1
+      launchctl start org.nixos.nix-daemon || true
+    fi
   else
     export NIX_CONF_DIR=$(maketemp ci.nix.conf -d)
     printf "%s" "$NIX_CONF" > "$NIX_CONF_DIR/nix.conf"
