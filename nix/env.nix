@@ -51,7 +51,7 @@
     ciOverlayArgs = args;
     defaultConfig.nixpkgs = {
       args.system = mkIf (config.system != null) (config.lib.ci.mkOptionDefault2 config.system);
-      path = config.lib.ci.mkOptionDefault1 (config.lib.nixpkgsPathFor.${builtins.nixVersion} or config.lib.nixpkgsPathFor."23.11");
+      path = config.lib.ci.mkOptionDefault1 (config.lib.nixpkgsPathFor.${builtins.nixVersion} or config.lib.nixpkgsPathFor."24.05");
       # TODO: defaults in url + sha256 instead? doesn't really matter...
     };
   }));
