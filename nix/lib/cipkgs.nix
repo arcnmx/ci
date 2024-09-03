@@ -14,7 +14,9 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.24." = nixpkgsFor."2.24.3";
+    "2.24." = nixpkgsFor."2.24.5";
+    "2.24.5" = nixpkgsFor."2.24.4";
+    "2.24.4" = nixpkgsFor."2.24.3";
     "2.24.3" = nixpkgsSource {
       rev = "c3d4ac725177c030b1e289015989da2ad9d56af0";
       sha256 = "sha256-sqLwJcHYeWLOeP/XoLwAtYjr01TISlkOfz+NG82pbdg=";
