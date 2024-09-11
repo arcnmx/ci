@@ -73,6 +73,10 @@ setup_nix_path() {
   NIX_USER_CONF=$(nix_eval '<ci>' config.nix.settingsText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
   NIX_USER_CONF_FILE=$(maketemp ci.nix.user.conf)
   printf "%s" "$NIX_USER_CONF" > "$NIX_USER_CONF_FILE"
+
+  echo "DEBUG: NIX_USER_CONF:" >&2
+  grep -vF access-tokens $NIX_USER_CONF_FILE >&2
+
   export NIX_USER_CONF_FILES="${NIX_USER_CONF_FILES-${XDG_CONFIG_HOME-$HOME/.config}/nix/nix.conf}:$NIX_USER_CONF_FILE"
   export_env NIX_USER_CONF_FILES "$NIX_USER_CONF_FILES"
 
@@ -205,6 +209,10 @@ rm -f $NIX_STORE_DIR/*.sh $NIX_STORE_DIR/.reginfo
 
 setup_nix_path
 
+echo "DEBUG: ID" >&2
+id >&2 || true
+sudo id >&2 || true
+
 # set up a default config
 if [[ -n $NIX_INSTALLER || ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]]; then
   NIX_CONF=$(nix_eval '<ci>' config.nix.configText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
@@ -235,6 +243,10 @@ if [[ -n $NIX_INSTALLER || ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]
     fi
   fi
 fi
+
+NIX_CONF_DIR=${NIX_CONF_DIR-/etc/nix}
+echo "DEBUG: NIX_CONF(${NIX_CONF_DIR}):" >&2
+grep -vF access-tokens "$NIX_CONF_DIR/nix.conf" >&2 || true
 
 export_env NIX_VERSION "$NIX_VERSION"
 #export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
