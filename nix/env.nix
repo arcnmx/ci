@@ -381,6 +381,10 @@ in {
         trusted-users = let
           user = env.get "USER";
         in [ "root" "@wheel" ] ++ optional (user != null) user;
+      } // {
+        ssl-cert-file = let
+          sslCert = env.get "NIX_SSL_CERT_FILE";
+        in mkIf (sslCert != null) (mkOptionDefault sslCert);
       };
       settings = {
         max-silent-time = mkOptionDefault config.nix.config.max-silent-time;
