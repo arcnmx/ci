@@ -17,8 +17,16 @@
     ci_env_impure
 
     asroot() {
+      local CI_ROOT_ENV=(
+        PATH="$PATH"
+      )
+      if [[ -n ''${NIX_SSL_CERT_FILE-} ]]; then
+        CI_ROOT_ENV+=(
+          NIX_SSL_CERT_FILE="$NIX_SSL_CERT_FILE"
+        )
+      fi
       if [[ ! -w @nixSysconfDir@ && -n "@allowRoot@" ]]; then
-        sudo @coreutils@/bin/env PATH="$PATH" NIX_SSL_CERT_FILE=$NIX_SSL_CERT_FILE "$@"
+        sudo @coreutils@/bin/env "''${CI_ROOT_ENV[@]}" "$@"
       else
         "$@"
       fi

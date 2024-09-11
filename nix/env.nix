@@ -381,15 +381,14 @@ in {
         trusted-users = let
           user = env.get "USER";
         in [ "root" "@wheel" ] ++ optional (user != null) user;
-        extra-sandbox-paths = let
+      } // {
+        ssl-cert-file = let
           sslCert = env.get "NIX_SSL_CERT_FILE";
-        in optional (sslCert != null) "${sslCert}?"
-        ++ [ "${builtins.unsafeDiscardStringContext config.bootstrap.pkgs.buildPackages.cacert.outPath}?" ];
+        in mkIf (sslCert != null) (mkOptionDefault sslCert);
       };
       settings = {
         max-silent-time = mkOptionDefault config.nix.config.max-silent-time;
         accept-flake-config = mkIf (elem "flakes" config.nix.experimental-features) (mkOptionDefault true);
-        extra-sandbox-paths = mkIf (config.nix.config.extra-sandbox-paths != [ ]) (mkOptionDefault config.nix.config.extra-sandbox-paths);
         extra-substituters = mkIf (config.cache.substituters != { }) substituters;
         extra-trusted-public-keys = mkIf hasPublicKeys publicKeys;
         extra-experimental-features = mkIf (config.nix.experimental-features != []) config.nix.experimental-features;

@@ -179,7 +179,10 @@ nixvars() {
     set +eu
     source $NIX_STORE_DIR/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
     set -eu
-  else
+    if [[ ${NIX_SSL_CERT_FILE-} = $NIX_STORE_DIR/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt ]]; then
+      unset NIX_SSL_CERT_FILE
+    fi
+  elif [[ ! -r /etc/ssl/certs/ca-certificates.crt ]]; then
     export NIX_SSL_CERT_FILE="$NIX_STORE_DIR/store/$NIX_STORE_CACERT/etc/ssl/certs/ca-bundle.crt"
   fi
 }
@@ -203,22 +206,26 @@ rm -f $NIX_STORE_DIR/*.sh $NIX_STORE_DIR/.reginfo
 setup_nix_path
 
 # set up a default config
-if [[ ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]]; then
+if [[ -n $NIX_INSTALLER || ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]]; then
   NIX_CONF=$(nix_eval '<ci>' config.nix.configText --argstr config "${CI_CONFIG-$CI_ROOT/tests/empty.nix}")
+
   if [[ $NIX_INSTALLER = --daemon ]]; then
     makedir /etc/nix
-    printf "%s" "$NIX_CONF" | sudo bash -c "cat > /etc/nix/nix.conf"
+    NIX_CONF_DIR=/etc/nix
   else
     export NIX_CONF_DIR=$(maketemp ci.nix.conf -d)
-    printf "%s" "$NIX_CONF" > "$NIX_CONF_DIR/nix.conf"
     export_env NIX_CONF_DIR "$NIX_CONF_DIR"
+  fi
+
+  if [[ -w $NIX_CONF_DIR ]]; then
+    printf "%s" "$NIX_CONF" >> "$NIX_CONF_DIR/nix.conf"
+  else
+    printf "%s" "$NIX_CONF" | sudo bash -c "cat >> $NIX_CONF_DIR/nix.conf"
   fi
 fi
 
 export_env NIX_VERSION "$NIX_VERSION"
-if [[ -r $NIX_SSL_CERT_FILE ]]; then
-	export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
-fi
+#export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
 if [[ -n ${NIX_IGNORE_SYMLINK_STORE-} ]]; then
   export_env NIX_IGNORE_SYMLINK_STORE "$NIX_IGNORE_SYMLINK_STORE"
 fi
