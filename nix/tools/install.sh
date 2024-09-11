@@ -222,6 +222,18 @@ if [[ -n $NIX_INSTALLER || ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]
   else
     printf "%s" "$NIX_CONF" | sudo bash -c "cat >> $NIX_CONF_DIR/nix.conf"
   fi
+
+  if [[ $NIX_INSTALLER = --daemon ]]; then
+    if [[ $NIX_SYSTEM = *-darwin ]]; then
+      launchctl kickstart -k system/org.nixos.nix-daemon ||
+      sudo launchctl kickstart -k system/org.nixos.nix-daemon ||
+      true
+    elif [[ $NIX_SYSTEM = *-linux ]]; then
+      systemctl restart nix-daemon.service ||
+      sudo systemctl restart nix-daemon.service ||
+      true
+    fi
+  fi
 fi
 
 export_env NIX_VERSION "$NIX_VERSION"
