@@ -216,7 +216,9 @@ if [[ ! -e /etc/nix/nix.conf ]] && [[ -z ${NIX_CONF_DIR-} ]]; then
 fi
 
 export_env NIX_VERSION "$NIX_VERSION"
-export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
+if [[ -r $NIX_SSL_CERT_FILE ]]; then
+	export_env NIX_SSL_CERT_FILE "$NIX_SSL_CERT_FILE"
+fi
 if [[ -n ${NIX_IGNORE_SYMLINK_STORE-} ]]; then
   export_env NIX_IGNORE_SYMLINK_STORE "$NIX_IGNORE_SYMLINK_STORE"
 fi
