@@ -56,10 +56,10 @@ jobs:
         - macos-latest
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - uses: ./actions/nix/install
       with:
-        nix-path: nixpkgs=https://nixos.org/channels/nixos-23.11/nixexprs.tar.xz
+        nix-path: nixpkgs=https://nixos.org/channels/nixos-24.05/nixexprs.tar.xz
     - uses: ./actions/nix/run
       with:
         attrs: nixpkgs.hello
@@ -75,7 +75,7 @@ jobs:
         - false
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - uses: ./actions/nix/install
     - uses: ./actions/nix/run
       with:

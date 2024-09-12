@@ -7,7 +7,7 @@
 
   channels = {
     # shorthands are available for common channels
-    nixpkgs = "19.09";
+    nixpkgs = "24.05";
     # custom NIX_PATH, pinned channels, etc.
     nur.url = "https://github.com/nix-community/NUR/archive/master.tar.gz";
   };
