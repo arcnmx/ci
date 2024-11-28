@@ -14,7 +14,12 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.24." = nixpkgsFor."2.24.9";
+    "2.25." = nixpkgsFor."2.25.2";
+    "2.25.2" = nixpkgsFor."2.25.1";
+    "2.25.1" = nixpkgsFor."2.25.0";
+    "2.25.0" = nixpkgsFor."2.24.3";
+    "2.24." = nixpkgsFor."2.24.10";
+    "2.24.10" = nixpkgsFor."2.24.9";
     "2.24.9" = nixpkgsFor."2.24.8";
     "2.24.8" = nixpkgsFor."2.24.7";
     "2.24.7" = nixpkgsFor."2.24.6";
@@ -31,17 +36,20 @@ rec {
       rev = "63d37ccd2d178d54e7fb691d7ec76000740ea24a";
       sha256 = "sha256-7cCC8+Tdq1+3OPyc3+gVo9dzUNkNIQfwSDJ2HSi2u3o=";
     };
-    "2.23." = nixpkgsFor."2.23.3";
+    "2.23." = nixpkgsFor."2.23.4";
+    "2.23.4" = nixpkgsFor."2.23.3";
     "2.23.3" = nixpkgsFor."2.23.2";
     "2.23.2" = nixpkgsFor."2.23.1";
     "2.23.1" = nixpkgsFor."2.23.0";
     "2.23.0" = nixpkgsFor."2.22.0";
-    "2.22." = nixpkgsFor."2.22.3";
+    "2.22." = nixpkgsFor."2.22.4";
+    "2.22.4" = nixpkgsFor."2.22.3";
     "2.22.3" = nixpkgsFor."2.22.2";
     "2.22.2" = nixpkgsFor."2.22.1";
     "2.22.1" = nixpkgsFor."2.22.0";
     "2.22.0" = nixpkgsFor."2.21.0";
-    "2.21." = nixpkgsFor."2.21.4";
+    "2.21." = nixpkgsFor."2.21.5";
+    "2.21.5" = nixpkgsFor."2.21.3";
     "2.21.4" = nixpkgsFor."2.21.3";
     "2.21.3" = nixpkgsFor."2.21.2";
     "2.21.2" = nixpkgsFor."2.21.1";
@@ -50,7 +58,8 @@ rec {
       rev = "b550fe4b4776908ac2a861124307045f8e717c8e";
       sha256 = "sha256-7kkJQd4rZ+vFrzWu8sTRtta5D1kBG0LSRYAfhtmMlSo=";
     };
-    "2.20." = nixpkgsFor."2.20.8";
+    "2.20." = nixpkgsFor."2.20.9";
+    "2.20.9" = nixpkgsFor."2.20.8";
     "2.20.8" = nixpkgsFor."2.20.7";
     "2.20.7" = nixpkgsFor."2.20.6";
     "2.20.6" = nixpkgsFor."2.20.5";
@@ -63,7 +72,8 @@ rec {
       rev = "a1982c92d8980a0114372973cbdfe0a307f1bdea";
       sha256 = "sha256-K5eJHmL1/kev6WuqyqqbS1cdNnSidIZ3jeqJ7GbrYnQ=";
     };
-    "2.19." = nixpkgsFor."2.19.6";
+    "2.19." = nixpkgsFor."2.19.7";
+    "2.19.7" = nixpkgsFor."2.19.6";
     "2.19.6" = nixpkgsFor."2.19.5";
     "2.19.5" = nixpkgsFor."2.19.4";
     "2.19.4" = nixpkgsFor."2.19.3";
@@ -77,7 +87,8 @@ rec {
       rev = "9eb24edd6a0027fed010ccfe300a9734d029983c";
       sha256 = "sha256-nsQo2/mkDUFeAjuu92p0dEqhRvHHiENhkKVIV1y0/Oo=";
     };
-    "2.18." = nixpkgsFor."2.18.8";
+    "2.18." = nixpkgsFor."2.18.9";
+    "2.18.9" = nixpkgsFor."2.18.8";
     "2.18.8" = nixpkgsFor."2.18.7";
     "2.18.7" = nixpkgsFor."2.18.6";
     "2.18.6" = nixpkgsFor."2.18.5";
