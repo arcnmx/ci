@@ -14,7 +14,8 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.25." = nixpkgsFor."2.25.2";
+    "2.25." = nixpkgsFor."2.25.3";
+    "2.25.3" = nixpkgsFor."2.25.2";
     "2.25.2" = nixpkgsFor."2.25.1";
     "2.25.1" = nixpkgsFor."2.25.0";
     "2.25.0" = nixpkgsFor."2.24.3";
@@ -267,12 +268,17 @@ rec {
       sha256 = "1ndiv385w1qyb3b18vw13991fzb9wg4cl21wglk89grsfsnra41k";
     };
     "24.05" = nixpkgsSource {
-      # 23.11 release
+      # 24.05 release
       rev = "63dacb46bf939521bdc93981b4cbb7ecb58427a0";
       sha256 = "1lr1h35prqkd1mkmzriwlpvxcb34kmhc9dnr48gkm8hh089hifmx";
     };
+    "24.11" = nixpkgsSource {
+      # 24.11 release (ish, missing tag but deployed same-day)
+      rev = "62c435d93bf046a5396f3016472e8f7c8e2aed65";
+      sha256 = "sha256-F7thesZPvAMSwjRu0K8uFshTk3ZZSNAsXTIFvXBT+34=";
+    };
   };
-  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."24.05";
+  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."24.11";
   nixpkgsPath = builtins.fetchTarball nixpkgsUrl;
   nixpkgs = args: import nixpkgsPath args;
 }
