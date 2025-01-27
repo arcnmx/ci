@@ -174,6 +174,12 @@ nixvars() {
   NIX_STORE_CACERT=$(cd $NIX_STORE_DIR/store && echo *-nss-cacert-*)
   NIX_PROFILE="$NIX_STORE_DIR/store/$NIX_STORE_NIX/etc/profile.d/nix.sh"
 
+  # silence "warning: Nix search path entry '/home/runner/.nix-defexpr/channels' does not exist, ignoring"
+  if [[ ! -e $HOME/.nix-defexpr/channels ]]; then
+    mkdir $HOME/.nix-defexpr || true
+    mkdir $HOME/.nix-defexpr/channels || true
+  fi
+
   export NIX_PATH_DIR="$NIX_STORE_DIR/store/$NIX_STORE_NIX/bin"
   if [[ $NIX_INSTALLER = --daemon ]]; then
     set +eu
