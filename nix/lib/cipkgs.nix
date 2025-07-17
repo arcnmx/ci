@@ -14,7 +14,28 @@ rec {
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.26." = nixpkgsFor."2.26.1";
+    "2.30." = nixpkgsFor."2.30.1";
+    "2.30.1" = nixpkgsFor."2.30.0";
+    "2.30.0" = nixpkgsFor."2.29.1";
+    "2.29." = nixpkgsFor."2.29.1";
+    "2.29.1" = nixpkgsFor."2.29.0";
+    "2.29.0" = nixpkgsSource {
+      rev = "adaa24fbf46737f3f1b5497bf64bae750f82942e";
+      sha256 = "sha256-qhFMmDkeJX9KJwr5H32f1r7Prs7XbQWtO0h3V0a0rFY=";
+    };
+    "2.28." = nixpkgsFor."2.28.4";
+    "2.28.4" = nixpkgsFor."2.28.3";
+    "2.28.3" = nixpkgsFor."2.28.2";
+    "2.28.2" = nixpkgsFor."2.28.1";
+    "2.28.1" = nixpkgsFor."2.28.0";
+    "2.28.0" = nixpkgsFor."2.27.1";
+    "2.27." = nixpkgsFor."2.27.1";
+    "2.27.1" = nixpkgsFor."2.27.0";
+    "2.27.0" = nixpkgsFor."2.26.4";
+    "2.26." = nixpkgsFor."2.26.4";
+    "2.26.4" = nixpkgsFor."2.26.3";
+    "2.26.3" = nixpkgsFor."2.26.2";
+    "2.26.2" = nixpkgsFor."2.26.1";
     "2.26.1" = nixpkgsFor."2.26.0";
     "2.26.0" = nixpkgsSource {
       rev = "48d12d5e70ee91fe8481378e540433a7303dbf6a";
@@ -27,7 +48,11 @@ rec {
     "2.25.2" = nixpkgsFor."2.25.1";
     "2.25.1" = nixpkgsFor."2.25.0";
     "2.25.0" = nixpkgsFor."2.24.3";
-    "2.24." = nixpkgsFor."2.24.11";
+    "2.24." = nixpkgsFor."2.24.15";
+    "2.24.15" = nixpkgsFor."2.24.14";
+    "2.24.14" = nixpkgsFor."2.24.13";
+    "2.24.13" = nixpkgsFor."2.24.12";
+    "2.24.12" = nixpkgsFor."2.24.11";
     "2.24.11" = nixpkgsFor."2.24.10";
     "2.24.10" = nixpkgsFor."2.24.9";
     "2.24.9" = nixpkgsFor."2.24.8";
@@ -285,6 +310,11 @@ rec {
       # 24.11 release (ish, missing tag but deployed same-day)
       rev = "62c435d93bf046a5396f3016472e8f7c8e2aed65";
       sha256 = "sha256-F7thesZPvAMSwjRu0K8uFshTk3ZZSNAsXTIFvXBT+34=";
+    };
+    "25.05" = nixpkgsSource {
+      # 25.05 release
+      rev = "11cb3517b3af6af300dd6c055aeda73c9bf52c48";
+      sha256 = "1915r28xc4znrh2vf4rrjnxldw2imysz819gzhk9qlrkqanmfsxd";
     };
   };
   nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."24.11";
