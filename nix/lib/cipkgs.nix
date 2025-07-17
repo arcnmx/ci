@@ -317,7 +317,7 @@ rec {
       sha256 = "1915r28xc4znrh2vf4rrjnxldw2imysz819gzhk9qlrkqanmfsxd";
     };
   };
-  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."24.11";
+  nixpkgsUrl = nixpkgsFor.${builtins.nixVersion} or nixpkgsFor.${builtins.substring 0 5 builtins.nixVersion} or nixpkgsFor."25.05";
   nixpkgsPath = builtins.fetchTarball nixpkgsUrl;
   nixpkgs = args: import nixpkgsPath args;
 }
