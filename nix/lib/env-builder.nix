@@ -8,7 +8,7 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
   inherit (config.bootstrap) runtimeShell;
   inherit (config.bootstrap.packages) nix;
 
-  passAsFile = [ "source" "env" "rc" "shellBin" ] ++ passAsFile;
+  passAsFile = [ "source" "cienv" "rc" "shellBin" ] ++ passAsFile;
 
   packages = map getBin packages;
   ciRoot = config.lib.ci.storePathFor ../..;
@@ -16,7 +16,7 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
   glibcLocaleVars = optionals hostPlatform.isLinux (mapAttrsToList (name: path:
     "LOCALE_ARCHIVE_${name}=${path}"
   ) glibcLocales);
-  env = ''
+  cienv = ''
     ci_env_host() {
       export PATH=$HOST_PATH
     }
@@ -99,7 +99,7 @@ in makeOverridable ({ pname, packages ? [], command ? "", passAsFile ? [], ... }
   }
 
   substituteAll $sourcePath $out/$prefix/source
-  substituteAll $envPath $out/$prefix/env
+  substituteAll $cienvPath $out/$prefix/env
   substituteAll $rcPath $out/$prefix/rc
   substituteBin $shellBinPath ci-shell
 
