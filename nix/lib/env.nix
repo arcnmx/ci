@@ -1,7 +1,8 @@
 { lib, config, ... }: with lib; rec {
   envOrNull = envOr null;
   envOr = fallback: key: let
-    value = builtins.getEnv key;
+    getEnv = builtins.getEnv or (_: "");
+    value = getEnv key;
   in if value == "" then fallback else value;
   envIsSet = key: if config.environment.impure
     then envOrNull key != null
