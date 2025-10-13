@@ -385,6 +385,7 @@ in {
         ssl-cert-file = let
           sslCert = env.get "NIX_SSL_CERT_FILE";
         in mkIf (sslCert != null) (mkOptionDefault sslCert);
+        build-users-group = mkIf (env.get "NIX_INSTALLER" != "--daemon") (mkOptionDefault "");
       };
       settings = {
         max-silent-time = mkOptionDefault config.nix.config.max-silent-time;

@@ -130,12 +130,12 @@ makedir() {
 }
 
 installer_fallback() {
-  NIX_INSTALLER=$1
+  export NIX_INSTALLER=$1
   NIX_STORE_DIR=$HOME/nix-install
   mkdir $NIX_STORE_DIR
 }
 
-NIX_INSTALLER=${NIX_INSTALLER-}
+export NIX_INSTALLER=${NIX_INSTALLER-}
 NIX_STORE_DIR=/nix
 if [[ -n $NIX_INSTALLER ]]; then
   installer_fallback "$NIX_INSTALLER"
