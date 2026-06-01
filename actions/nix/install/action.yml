@@ -1,6 +1,6 @@
 name: nix install
 runs:
-  using: node20
+  using: node24
   main: main.js
 description: Install nix in the GitHub Actions virtual environment.
 inputs:
