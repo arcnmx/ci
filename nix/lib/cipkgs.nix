@@ -2,32 +2,54 @@ rec {
   getNixpkgsHashFor = { version }: let
     # nix eval -f nix/lib/cipkgs.nix getNixpkgsHashFor.sourceInfo --argstr version 2.10.3
     nix = builtins.getFlake "github:NixOS/nix/${version}";
+    narUrl = (builtins.fromJSON (builtins.readFile "${nix}/flake.lock")).nodes.nixpkgs.locked.url or null;
+    sha256 = if narUrl != null then (builtins.getFlake "github:NixOS/nixpkgs/${sourceInfo.rev}").narHash else null;
+    inherit (nix.inputs.nixpkgs) sourceInfo;
   in {
     sourceInfo = {
-      inherit (nix.inputs.nixpkgs.sourceInfo) rev narHash;
+      inherit (sourceInfo) rev narHash;
+      inherit narUrl sha256;
     };
   };
-  nixpkgsSource = { rev, sha256 }: {
+  nixpkgsSource = { rev, sha256, narUrl ? null, narHash ? null }: {
     name = "source";
     url = "https://github.com/nixos/nixpkgs/archive/${rev}.tar.gz";
     inherit sha256;
   };
   nixpkgsFor = {
     # pinned nixpkgs evaluations bundled with nix binary releases (https://github.com/NixOS/nix/blob/master/flake.lock)
-    "2.34." = nixpkgsFor."2.34.0";
+    "2.34." = nixpkgsFor."2.34.7";
+    "2.34.7" = nixpkgsFor."2.34.6";
+    "2.34.6" = nixpkgsFor."2.34.5";
+    "2.34.5" = nixpkgsFor."2.34.4";
+    "2.34.4" = nixpkgsFor."2.34.3";
+    "2.34.3" = nixpkgsFor."2.34.2";
+    "2.34.2" = nixpkgsFor."2.34.1";
+    "2.34.1" = nixpkgsFor."2.34.0";
     "2.34.0" = nixpkgsSource {
       rev = "e764fc9a405871f1f6ca3d1394fb422e0a0c3951";
-      sha256 = "sha256-jEA8WggGKtMFeNeCKq3NK8cLEjJmG6/RLUElYYbBZ0E=";
+      sha256 = "sha256-sdaqdnsQCv3iifzxwB22tUwN/fSHoN7j2myFW5EIkGk=";
+      # upstream url changed...
+      narUrl = "https://releases.nixos.org/nixos/25.11/nixos-25.11.6495.e764fc9a4058/nixexprs.tar.xz";
+      narHash = "sha256-jEA8WggGKtMFeNeCKq3NK8cLEjJmG6/RLUElYYbBZ0E=";
     };
-    "2.33." = nixpkgsFor."2.33.3";
+    "2.33." = nixpkgsFor."2.33.6";
+    "2.33.6" = nixpkgsFor."2.33.5";
+    "2.33.5" = nixpkgsFor."2.33.4";
+    "2.33.4" = nixpkgsFor."2.33.3";
     "2.33.3" = nixpkgsFor."2.33.2";
     "2.33.2" = nixpkgsFor."2.33.1";
     "2.33.1" = nixpkgsFor."2.33.0";
     "2.33.0" = nixpkgsSource {
       rev = "1c8ba8d3f7634acac4a2094eef7c32ad9106532c";
-      sha256 = "sha256-zZk7fn2ARAqmLwaYTpxBJmj81KIdz11NiWt7ydHHD/M=";
+      sha256 = "sha256-dY9qLD0H0zOUgU3vWacPY6Qc421BeQAfm8kBuBtPVE0=";
+      # upstream url changed...
+      narUrl = "https://releases.nixos.org/nixos/25.05/nixos-25.05.813095.1c8ba8d3f763/nixexprs.tar.xz";
+      narHash = "sha256-zZk7fn2ARAqmLwaYTpxBJmj81KIdz11NiWt7ydHHD/M=";
     };
-    "2.32." = nixpkgsFor."2.32.6";
+    "2.32." = nixpkgsFor."2.32.8";
+    "2.32.8" = nixpkgsFor."2.32.7";
+    "2.32.7" = nixpkgsFor."2.32.6";
     "2.32.6" = nixpkgsFor."2.32.5";
     "2.32.5" = nixpkgsFor."2.32.4";
     "2.32.4" = nixpkgsFor."2.32.3";
@@ -35,7 +57,9 @@ rec {
     "2.32.2" = nixpkgsFor."2.32.1";
     "2.32.1" = nixpkgsFor."2.32.0";
     "2.32.0" = nixpkgsFor."2.31.2";
-    "2.31." = nixpkgsFor."2.31.3";
+    "2.31." = nixpkgsFor."2.31.5";
+    "2.31.5" = nixpkgsFor."2.31.4";
+    "2.31.4" = nixpkgsFor."2.31.3";
     "2.31.3" = nixpkgsSource {
       rev = "daf6dc47aa4b44791372d6139ab7b25269184d55";
       sha256 = "sha256-wxX7u6D2rpkJLWkZ2E932SIvDJW8+ON/0Yy8+a5vsDU=";
@@ -46,19 +70,25 @@ rec {
       rev = "cd32a774ac52caaa03bcfc9e7591ac8c18617ced";
       sha256 = "sha256-VtMQg02B3kt1oejwwrGn50U9Xbjgzfbb5TV5Wtx8dKI=";
     };
-    "2.30." = nixpkgsFor."2.30.3";
+    "2.30." = nixpkgsFor."2.30.5";
+    "2.30.5" = nixpkgsFor."2.30.4";
+    "2.30.4" = nixpkgsFor."2.30.3";
     "2.30.3" = nixpkgsFor."2.29.2";
     "2.30.2" = nixpkgsFor."2.30.1";
     "2.30.1" = nixpkgsFor."2.30.0";
     "2.30.0" = nixpkgsFor."2.29.1";
-    "2.29." = nixpkgsFor."2.29.2";
+    "2.29." = nixpkgsFor."2.29.4";
+    "2.29.4" = nixpkgsFor."2.29.3";
+    "2.29.3" = nixpkgsFor."2.29.2";
     "2.29.2" = nixpkgsFor."2.28.5";
     "2.29.1" = nixpkgsFor."2.29.0";
     "2.29.0" = nixpkgsSource {
       rev = "adaa24fbf46737f3f1b5497bf64bae750f82942e";
       sha256 = "sha256-qhFMmDkeJX9KJwr5H32f1r7Prs7XbQWtO0h3V0a0rFY=";
     };
-    "2.28." = nixpkgsFor."2.28.5";
+    "2.28." = nixpkgsFor."2.28.7";
+    "2.28.7" = nixpkgsFor."2.28.6";
+    "2.28.6" = nixpkgsFor."2.28.5";
     "2.28.5" = nixpkgsSource {
       rev = "d98ce345cdab58477ca61855540999c86577d19d";
       sha256 = "sha256-O2CIn7HjZwEGqBrwu9EU76zlmA5dbmna7jL1XUmAId8=";
